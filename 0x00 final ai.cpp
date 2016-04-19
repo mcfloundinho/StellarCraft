@@ -8,7 +8,7 @@
 #define WAIT  while(GetTime()==operate_time);
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
-enum stuation {
+enum situation {
 	NONE=0,
 	OPPONENT=1<<0,
 	SEE_BOSS=1<<1,
@@ -21,18 +21,56 @@ struct ball {
 	Position center;
 	double radius;
 };
-//variable							initial							use
+////variable							initial							use
+//PlayerObject me;//					initial()						almost everywhere
+//int emergency;	//					opponent(),boss()				greedy()
+//int ad_weight = 10;//				initial()						initial()
+//int num_of_aim;//					greedy()						avoid()
+//int num_of_food;//					initial()						greedy()
+//int num_of_devour;//				initial()						avoid()
+//int en_weight = 20;
+//int code;//							initial()						AIMain()&greedy()
+//double me_radius;//					initial()						almost everywhere
+double opponent_radius;//			initial()						opponent()
+double boss_radius;//				initial()						greedy()
+Position boss_pos;//				initial()						action()
+Position opponent_pos;//			initial()						opponent()
+//point aim[MAX_SIZE];//				greedy()						avoid()
+//point food[MAX_SIZE];//				initial()						greedy()
+//Position devour[MAX_SIZE];//		initial()						avoid()
+//ball devour_for_YQY[MAX_SIZE];//	initial()						avoid()
+//point solution[NUM_OF_SOLUTION];//	opponent(),boss()				avoid()
+//Position go_for;//					avoid()							move()
+//Position last_move;//				move()							move()
+//int operate_time;//					after any action				before any action		
+////core function						function						author	round_cost
+//int initial();//					initial,update the basic value	ARC
+//void greedy();//					find the best food				ZWT
+//int update();//						update the skills, shield		ZWT		1cost
+//void avoid();//						avoid the devour and border		YQY
+//int opponent();//					deal with the opponent			PLU		1cost
+//int boss();//						smaller, kill; bigger, eat		ARC		1cost		
+//void move();//						move to							PLU		1cost
+////auxiliary variables
+//char bitmap[(MAX_SIZE >> 3)+1];
+////auxiliary function
+//point mi_zhi_yin_qiu_yang(int n);
+//int zw_cost(int skill);
+//int zw_cmp(const void*, const void*);
 PlayerObject me;//					initial()						almost everywhere
 int emergency;	//					opponent(),boss()				greedy()
 int ad_weight = 100;//				initial()						initial()
 int num_of_aim;//					greedy()						avoid()
 int num_of_food;//					initial()						greedy()
+int num_of_devour;//				initial()						avoid()
 int code;//							initial()						AIMain()&greedy()
 double me_radius;//					initial()						almost everywhere
-double opponent_radius;//			initial()						opponent()
-double boss_radius;//				initial()						greedy()
-Position boss_pos;//				initial()						action()
-Position opponent_pos;//			initial()						opponent()
+				 /* To Archer: uncomment these if you consider it necessary
+				 double opponent_radius;//			initial()						opponent()
+				 double boss_radius;//				initial()						greedy()
+				 */
+Object boss_obj;//				initial()						action()
+Object opponent_obj;//			initial()						opponent()
 point aim[MAX_SIZE];//				greedy()						avoid()
 point food[MAX_SIZE];//				initial()						greedy()
 Position devour[MAX_SIZE];//		initial()						avoid()
@@ -41,44 +79,53 @@ point solution[NUM_OF_SOLUTION];//	opponent(),boss()				avoid()
 Position go_for;//					avoid()							move()
 Position last_move;//				move()							move()
 int operate_time;//					after any action				before any action		
-//core function						function						author	round_cost
+				 //core function						function						author	round_cost
 int initial();//					initial,update the basic value	ARC
 void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
 void avoid();//						avoid the devour and border		YQY
-int opponent();//					deal with the opponent			PLU		1cost
+//int opponent();//					deal with the opponent			PLU		1cost
 int boss();//						smaller, kill; bigger, eat		ARC		1cost		
 void move();//						move to							PLU		1cost
 //auxiliary variables
-char bitmap[1000 >> 3+1];
+int en_weight = 20;
+char bitmap[(MAX_SIZE >> 3) + 1];
 //auxiliary function
 int zw_cost(int skill);
 int zw_cmp(const void*, const void*);
+int long_attack(const Object& target);
+int short_attack(const Object& target);
+void zw_enshaw();
 //lower level function
 Position add(Position a, Position b);//a+b
 Position minus(Position a, Position b);//a-b，从B指向A的向量
 Position multiple(double k, Position a);//ka，数乘
 Position cross_product(Position a, Position b);//a*b 叉乘
+double dot_product(Position a, Position b);//ab
 double length(Position a);//求矢量模长
 Position norm(Position a);//求单位矢量
 double distance(Position a, Position b);//求AB两点距离
 void show(Position a);//输出矢量 
 //Main
 void AIMain() {
-	srand(time(0));
-	code = initial();
-	update();
-	if (code&OPPONENT) {
-		opponent();
+	for (;;) {
+		srand(time(0));
+		//PAUSE();
+		code = initial();
+		update();
+		//if (code&OPPONENT) {
+		//	opponent();
+		//}
+		//if (code&SEE_BOSS) {
+		//	boss();
+		//}
+		if (!emergency) {
+			greedy();
+		}
+		avoid();
+		//CONTINUE();
+		move();
 	}
-	if (code&SEE_BOSS) {
-		boss();
-	}
-	if (!emergency) {
-		greedy();
-	}
-	avoid();
-	move();
 }
 //function body
 Position add(Position a,Position b)
@@ -113,6 +160,10 @@ Position cross_product(Position a,Position b)
     c.z=a.x*b.y-a.y*b.x;
     return c;
 }
+double dot_product(Position a, Position b)
+{
+	return (a.x*b.x + a.y*b.y + a.z*b.z);
+}
 double length(Position a)
 {
     return sqrt(a.x*a.x+a.y*a.y+a.z*a.z);
@@ -143,7 +194,7 @@ int zw_cost(int skill) {
 	}
 }
 int update() {
-	if (!me.skill_cd[SHIELD]) {
+	if (me.skill_cd[SHIELD]==0&&me.short_attack_casting==-1&&me.long_attack_casting==-1) {
 		WAIT;
 		Shield(me.id);
 		GO;
@@ -204,12 +255,16 @@ int update() {
 			else return 0;
 		}
 		else {
-				if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
-					if (me.ability >= zw_cost(LONG_ATTACK)) {
+			ad_weight = 1;
+			if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
+				if (me.ability >= zw_cost(LONG_ATTACK)) {
 						WAIT;
 						UpgradeSkill(me.id, LONG_ATTACK);
 						GO;
 						return 1;
+					}
+					else {
+						ad_weight = 0;
 					}
 			}
 		}
@@ -217,9 +272,10 @@ int update() {
 	}
 }
 void greedy() {
-	int check = 0.9*me_radius;
+	double check = me_radius;
 	if (emergency)return;
-	memset(bitmap, 0, 100 >> 3 + 1);
+	zw_enshaw();
+	memset(bitmap, 0, (MAX_SIZE >> 3) + 1);
 	while (true) {
 		int next;
 		for (next = 0;next < num_of_food;next++) {
@@ -232,22 +288,203 @@ void greedy() {
 		for (i = 0;i < num_of_food;i++) {
 				if (!(bitmap[i >> 3] & (0x80 >> (i & 0x07)))) {
 					if (distance(aim[num_of_aim].pos, food[i].pos) < check) {
-						aim[num_of_aim].pos = multiple(1 / (aim[num_of_aim].weight + food[i].weight),
+						/*aim[num_of_aim].pos = multiple(1.0 / (aim[num_of_aim].weight + food[i].weight),
 							add(multiple(aim[num_of_aim].weight, aim[num_of_aim].pos), multiple(food[i].weight, food[i].pos)));
-						aim[num_of_aim].weight += food[i].weight;
+						aim[num_of_aim].weight += food[i].weight;*/
 						bitmap[i >> 3] |= (0x80 >> (i & 0x07));
 					}
 				}
 			}
 		num_of_aim++;
 	}
-	qsort(aim, sizeof(point), num_of_aim, zw_cmp);
+	qsort(aim+1, num_of_aim-1,sizeof(point), zw_cmp);
 }
 int zw_cmp(const void* p, const void* q) {
+	Position p1 = norm(minus(((point*)p)->pos, me.pos));
+	Position p2 = norm(minus(((point*)q)->pos, me.pos));
 	Position my = GetStatus()->objects[0].pos;
 	double dis1 = distance(my, ((point*)p)->pos);
 	double dis2 = distance(my, ((point*)q)->pos);
-	int w1 = (((point*)p)->weight);
-	int w2 = (((point*)q)->weight);
-	return w2 / dis2 - w1 / dis1;
+	double w1 = (((point*)p)->weight)*(dot_product(last_move,p1)+1.5);
+	double w2 = (((point*)q)->weight)*(dot_product(last_move, p2)+1.5);
+	return ((w2 / dis2 - w1 / dis1) > 0);
+}
+int z_initial() {
+	Position center{kMapSize>>1,kMapSize>>1,kMapSize>>1};
+	code = 0;
+	me = GetStatus()->objects[0];
+	me_radius = me.radius;
+	emergency = 0;
+	num_of_aim = 0;
+	num_of_food = 0;
+	num_of_devour = 0;
+	const Map* map = GetMap();
+	int n = map->objects_number - 1;
+	for (;n >= 0;--n) {
+		switch (map->objects[n].type) {
+		case BOSS:
+			code |= SEE_BOSS;
+			boss_pos = map->objects[n].pos;
+			boss_radius = map->objects[n].radius;
+			break;
+		case PLAYER:
+			if (map->objects[n].team_id != GetStatus()->team_id) {
+				code |= OPPONENT;
+				opponent_pos = map->objects[n].pos;
+				opponent_radius = map->objects[n].radius;
+			}
+			break;
+		case ENERGY:
+			if (distance(map->objects[n].pos, center) < (kMapSize << 1)) {
+				food[num_of_food].pos = map->objects[n].pos;
+				food[num_of_food].weight = 1;
+				++num_of_food;
+			}
+			break;
+		case ADVANCED_ENERGY:
+			food[num_of_food].pos = map->objects[n].pos;
+			food[num_of_food].weight = ad_weight;
+			++num_of_food;
+			break;
+		case DEVOUR:
+			devour[num_of_devour++] = map->objects[n].pos;
+			break;
+		}
+	}
+	return code;
+}
+void avoid() {
+	go_for = aim[1].pos;
+}
+void move() {
+	Position speed;
+	double mode = (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
+	speed = multiple(mode, minus(go_for, me.pos));
+	Move(me.id, speed);
+	last_move = norm(speed);
+}
+point mi_zhi_yin_qiu_yang(int n) {
+	if (n >= 2) {
+		return aim[n - 2];
+	}
+	else {
+		return solution[n];
+	}
+}
+void zw_enshaw() {
+	num_of_aim = 1;
+	Position force = { 0.0,0.0,0.0 };
+	int n = num_of_food - 1;
+	for (;n >= 0;n--) {
+		Position point_to = minus(food[n].pos, me.pos);
+		double k = 2.5*me_radius / length(point_to);
+		force = add(force, multiple(k*k*food[n].weight, point_to));
+	}
+	aim[0].pos = add(me.pos, force);
+	aim[0].weight = en_weight;
+}
+int initial() {
+	me = GetStatus()->objects[0];
+	num_of_aim = num_of_food = num_of_devour = 0;
+	emergency = code = 0;
+	me_radius = me.radius;
+	const Map *map = GetMap();
+	int i = (*map).objects_number - 1;
+	for (; ~i; --i) {
+		switch ((*map).objects[i].type) {
+		case PLAYER:
+			if ((*map).objects[i].team_id == GetStatus()->team_id) break;
+			opponent_obj = (*map).objects[i];
+			code ^= OPPONENT;
+			break;
+		case ENERGY:
+			if ((*map).objects[i].pos.x - 0.75 * me_radius < 0) break;
+			if ((*map).objects[i].pos.y - 0.75 * me_radius < 0) break;
+			if ((*map).objects[i].pos.z - 0.75 * me_radius < 0) break;
+			if ((*map).objects[i].pos.x + 0.75 * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.y + 0.75 * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.z + 0.75 * me_radius > kMapSize) break;
+			food[num_of_food].weight = 1;
+			food[num_of_food].pos = (*map).objects[i].pos;
+			++num_of_food;
+			break;
+		case ADVANCED_ENERGY:
+			if (distance((*map).objects[i].pos, { 0, 0, 0 }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < 0.75 * me_radius) break;
+			food[num_of_food].weight = ad_weight;
+			food[num_of_food].pos = (*map).objects[i].pos;
+			++num_of_food;
+			break;
+		case SOURCE: break;
+		case DEVOUR:
+			devour[num_of_devour] = (*map).objects[i].pos;
+			++num_of_devour;
+			break;
+		case BOSS:
+			boss_obj = (*map).objects[i];
+			code ^= SEE_BOSS;
+			break;
+		default: break;
+		}
+	}
+	return code;
+}
+int boss() {
+	if (boss_radius < me_radius * kEatableRatio) {
+		solution[SEE_BOSS].weight = 100;
+		solution[SEE_BOSS].pos = boss_obj.pos;
+		return 0;
+	}
+	else {
+		int tmp = short_attack(boss_obj);
+		if (!~tmp) tmp = long_attack(boss_obj);
+		return (~tmp) ? 1 : 0;
+	}
+}
+int long_attack(const Object& target)
+{
+	if (me.skill_cd[LONG_ATTACK] == -1) {
+		return -1;
+	}
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+		return -1;
+	}
+	if (target.shield_time > 0) {
+		return -1;
+	}
+	if (distance(target.pos, me.pos) - target.radius - me.radius
+			> kLongAttackRange[me.skill_level[LONG_ATTACK]]) {
+		return -1;
+	}
+	WAIT;
+	LongAttack(me.id, target.id);
+	GO;
+	return 0;
+}
+
+int short_attack(const Object& target)
+{
+	if (me.skill_cd[SHORT_ATTACK] == -1) {
+		return -1;
+	}
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+		return -1;
+	}
+	if (target.shield_time > 0) {
+		return -1;
+	}
+	if (distance(target.pos, me.pos) - target.radius - me.radius
+			> kShortAttackRange[me.skill_level[SHORT_ATTACK]]) {
+		return -1;
+	}
+	WAIT;
+	ShortAttack(me.id);
+	GO;
+	return 0;
 }
