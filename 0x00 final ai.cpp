@@ -300,13 +300,16 @@ void greedy() {
 	qsort(aim+1, num_of_aim-1,sizeof(point), zw_cmp);
 }
 int zw_cmp(const void* p, const void* q) {
+	Position center = { kMapSize << 1,kMapSize << 1,kMapSize << 1 };
 	Position p1 = norm(minus(((point*)p)->pos, me.pos));
 	Position p2 = norm(minus(((point*)q)->pos, me.pos));
+	Position q1 = norm(minus(((point*)p)->pos, center));
+	Position q2 = norm(minus(((point*)q)->pos, center));
 	Position my = GetStatus()->objects[0].pos;
 	double dis1 = distance(my, ((point*)p)->pos);
 	double dis2 = distance(my, ((point*)q)->pos);
-	double w1 = (((point*)p)->weight)*(dot_product(last_move,p1)+1.5);
-	double w2 = (((point*)q)->weight)*(dot_product(last_move, p2)+1.5);
+	double w1 = (((point*)p)->weight)*(dot_product(q1,p1)+1.5);
+	double w2 = (((point*)q)->weight)*(dot_product(q2, p2)+1.5);
 	return ((w2 / dis2 - w1 / dis1) > 0);
 }
 int z_initial() {
@@ -420,8 +423,7 @@ int initial() {
 			food[num_of_food].weight = ad_weight;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
-			break;
-		case SOURCE: break;
+			break;		case SOURCE: break;
 		case DEVOUR:
 			devour[num_of_devour] = (*map).objects[i].pos;
 			++num_of_devour;
@@ -442,6 +444,7 @@ int boss() {
 		return 0;
 	}
 	else {
+		emergency = me_radius < boss_radius * kEatableRatio ? 1 : 0;
 		int tmp = short_attack(boss_obj);
 		if (!~tmp) tmp = long_attack(boss_obj);
 		return (~tmp) ? 1 : 0;
