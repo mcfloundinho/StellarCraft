@@ -84,7 +84,7 @@ int initial();//					initial,update the basic value	ARC
 void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
 void avoid();//						avoid the devour and border		YQY
-//int opponent();//					deal with the opponent			PLU		1cost
+int opponent();//					deal with the opponent			PLU		1cost
 int boss();//						smaller, kill; bigger, eat		ARC		1cost		
 void move();//						move to							PLU		1cost
 //auxiliary variables
@@ -113,12 +113,12 @@ void AIMain() {
 		//PAUSE();
 		code = initial();
 		update();
-		//if (code&OPPONENT) {
-		//	opponent();
-		//}
-		//if (code&SEE_BOSS) {
-		//	boss();
-		//}
+		if (code&OPPONENT) {
+			opponent();
+		}
+		if (code&SEE_BOSS) {
+			boss();
+		}
 		if (!emergency) {
 			greedy();
 		}
@@ -490,4 +490,26 @@ int short_attack(const Object& target)
 	ShortAttack(me.id);
 	GO;
 	return 0;
+}
+int opponent()
+{
+	const double safe_distance = 1000;
+	int result = 0;
+	solution[OPPONENT].pos = { kMapSize / 2, kMapSize / 2, kMapSize / 2 };
+	solution[OPPONENT].weight = 0;
+	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
+		result = 1;
+	}
+	if (opponent_obj.radius > me.radius * 1.1) {
+		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+		solution[OPPONENT].weight = 10000;
+		if (distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
+			emergency = 1;
+		}
+	}
+	else if (opponent_obj.radius < me.radius * 0.8) {
+		solution[OPPONENT].pos = add(me.pos, minus(opponent_obj.pos, me.pos));
+		solution[OPPONENT].weight = 15;
+	}
+	return result;
 }
