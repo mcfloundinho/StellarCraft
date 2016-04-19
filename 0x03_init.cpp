@@ -57,6 +57,7 @@ int boss(){
 		return 0;
 	}
 	else{
+		emergency = me_radius < boss_radius * kEatableRatio ? 1 : 0;
 		int tmp = short_attack(boss_obj);
 		if (!~tmp) tmp = long_attack(boss_obj);
 		return (~tmp) ? 1 : 0;
