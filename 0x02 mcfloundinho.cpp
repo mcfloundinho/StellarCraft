@@ -59,6 +59,7 @@ int zw_cost(int skill);
 int zw_cmp(const void*, const void*);
 int long_attack(const Object& target);
 int short_attack(const Object& target);
+int dash();
 //lower level function
 Position add(Position a, Position b);//a+b
 Position minus(Position a, Position b);//a-b，从B指向A的向量
@@ -94,6 +95,7 @@ void AIMain() {
 
 int long_attack(const Object& target)
 {
+	dash();
 	if (me.skill_cd[LONG_ATTACK] == -1) {
 		return -1;
 	}
@@ -115,6 +117,7 @@ int long_attack(const Object& target)
 
 int short_attack(const Object& target)
 {
+	dash();
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
 		return -1;
 	}
@@ -130,6 +133,20 @@ int short_attack(const Object& target)
 	}
 	WAIT;
 	ShortAttack(me.id);
+	GO;
+	return 0;
+}
+
+int dash()
+{
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+		return -1;
+	if (!me.skill_level[DASH])
+		return -1;
+	if (me.skill_cd[DASH] == -1)
+		return -1;
+	WAIT;
+	Dash(me.id);
 	GO;
 	return 0;
 }
@@ -154,6 +171,7 @@ int opponent()
 		solution[OPPONENT].pos = add(me.pos, minus(opponent_obj.pos, me.pos));
 		solution[OPPONENT].weight = 15;
 	}
+	return result;
 }
 
 Position add(Position a, Position b)
