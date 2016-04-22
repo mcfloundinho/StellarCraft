@@ -3,15 +3,14 @@
 #include<math.h>
 #include<stdlib.h>
 #include<time.h>
-#include<iostream>
 #define MAX_SIZE 1000
 #define WAIT  while(GetTime()==operate_time);
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
 enum situation {
-	NONE=0,
-	OPPONENT=1<<0,
-	SEE_BOSS=1<<1,
+	NONE = 0,
+	OPPONENT = 1 << 0,
+	SEE_BOSS = 1 << 1,
 };
 struct point {
 	int weight;
@@ -35,28 +34,28 @@ double opponent_radius;//			initial()						opponent()
 double boss_radius;//				initial()						greedy()
 Position boss_pos;//				initial()						action()
 Position opponent_pos;//			initial()						opponent()
-//point aim[MAX_SIZE];//				greedy()						avoid()
-//point food[MAX_SIZE];//				initial()						greedy()
-//Position devour[MAX_SIZE];//		initial()						avoid()
-//ball devour_for_YQY[MAX_SIZE];//	initial()						avoid()
-//point solution[NUM_OF_SOLUTION];//	opponent(),boss()				avoid()
-//Position go_for;//					avoid()							move()
-//Position last_move;//				move()							move()
-//int operate_time;//					after any action				before any action		
-////core function						function						author	round_cost
-//int initial();//					initial,update the basic value	ARC
-//void greedy();//					find the best food				ZWT
-//int update();//						update the skills, shield		ZWT		1cost
-//void avoid();//						avoid the devour and border		YQY
-//int opponent();//					deal with the opponent			PLU		1cost
-//int boss();//						smaller, kill; bigger, eat		ARC		1cost		
-//void move();//						move to							PLU		1cost
-////auxiliary variables
-//char bitmap[(MAX_SIZE >> 3)+1];
-////auxiliary function
-//point mi_zhi_yin_qiu_yang(int n);
-//int zw_cost(int skill);
-//int zw_cmp(const void*, const void*);
+					  //point aim[MAX_SIZE];//				greedy()						avoid()
+					  //point food[MAX_SIZE];//				initial()						greedy()
+					  //Position devour[MAX_SIZE];//		initial()						avoid()
+					  //ball devour_for_YQY[MAX_SIZE];//	initial()						avoid()
+					  //point solution[NUM_OF_SOLUTION];//	opponent(),boss()				avoid()
+					  //Position go_for;//					avoid()							move()
+					  //Position last_move;//				move()							move()
+					  //int operate_time;//					after any action				before any action		
+					  ////core function						function						author	round_cost
+					  //int initial();//					initial,update the basic value	ARC
+					  //void greedy();//					find the best food				ZWT
+					  //int update();//						update the skills, shield		ZWT		1cost
+					  //void avoid();//						avoid the devour and border		YQY
+					  //int opponent();//					deal with the opponent			PLU		1cost
+					  //int boss();//						smaller, kill; bigger, eat		ARC		1cost		
+					  //void move();//						move to							PLU		1cost
+					  ////auxiliary variables
+					  //char bitmap[(MAX_SIZE >> 3)+1];
+					  ////auxiliary function
+					  //point mi_zhi_yin_qiu_yang(int n);
+					  //int zw_cost(int skill);
+					  //int zw_cmp(const void*, const void*);
 PlayerObject me;//					initial()						almost everywhere
 int emergency;	//					opponent(),boss()				greedy()
 int ad_weight = 100;//				initial()						initial()
@@ -87,7 +86,7 @@ void avoid();//						avoid the devour and border		YQY
 int opponent();//					deal with the opponent			PLU		1cost
 int boss();//						smaller, kill; bigger, eat		ARC		1cost		
 void move();//						move to							PLU		1cost
-//auxiliary variables
+			//auxiliary variables
 int en_weight = 20;
 char bitmap[(MAX_SIZE >> 3) + 1];
 //auxiliary function
@@ -106,7 +105,7 @@ double length(Position a);//求矢量模长
 Position norm(Position a);//求单位矢量
 double distance(Position a, Position b);//求AB两点距离
 void show(Position a);//输出矢量 
-//Main
+					  //Main
 void AIMain() {
 	for (;;) {
 		srand(time(0));
@@ -128,37 +127,37 @@ void AIMain() {
 	}
 }
 //function body
-Position add(Position a,Position b)
+Position add(Position a, Position b)
 {
-    Position c;
-    c.x=a.x+b.x;
-    c.y=a.y+b.y;
-    c.z=a.z+b.z;
-    return c;
+	Position c;
+	c.x = a.x + b.x;
+	c.y = a.y + b.y;
+	c.z = a.z + b.z;
+	return c;
 }
-Position minus(Position a,Position b)
+Position minus(Position a, Position b)
 {
-    Position c;
-    c.x=a.x-b.x;
-    c.y=a.y-b.y;
-    c.z=a.z-b.z;
-    return c;
+	Position c;
+	c.x = a.x - b.x;
+	c.y = a.y - b.y;
+	c.z = a.z - b.z;
+	return c;
 }
-Position multiple(double k,Position a)
+Position multiple(double k, Position a)
 {
-    Position c;
-    c.x=k*a.x;
-    c.y=k*a.y;
-    c.z=k*a.z;
-    return c;
+	Position c;
+	c.x = k*a.x;
+	c.y = k*a.y;
+	c.z = k*a.z;
+	return c;
 }
-Position cross_product(Position a,Position b)
+Position cross_product(Position a, Position b)
 {
-    Position c;
-    c.x=a.y*b.z-a.z*b.y;
-    c.y=-a.x*b.z+a.z*b.x;
-    c.z=a.x*b.y-a.y*b.x;
-    return c;
+	Position c;
+	c.x = a.y*b.z - a.z*b.y;
+	c.y = -a.x*b.z + a.z*b.x;
+	c.z = a.x*b.y - a.y*b.x;
+	return c;
 }
 double dot_product(Position a, Position b)
 {
@@ -166,20 +165,20 @@ double dot_product(Position a, Position b)
 }
 double length(Position a)
 {
-    return sqrt(a.x*a.x+a.y*a.y+a.z*a.z);
+	return sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
 }
 Position norm(Position a)
 {
-    double l=1/length(a);
-    return multiple(l,a);
+	double l = 1 / length(a);
+	return multiple(l, a);
 }
-double distance(Position a,Position b)
+double distance(Position a, Position b)
 {
-    return length(minus(a,b));
+	return length(minus(a, b));
 }
 void show(Position a)
 {
-    printf("The position is (%f,%f,%f).\n",a.x,a.y,a.z);
+	printf("The position is (%f,%f,%f).\n", a.x, a.y, a.z);
 }
 int zw_cost(int skill) {
 	if (me.skill_level[skill]) {
@@ -194,7 +193,7 @@ int zw_cost(int skill) {
 	}
 }
 int update() {
-	if (me.skill_cd[SHIELD]==0&&me.short_attack_casting==-1&&me.long_attack_casting==-1) {
+	if (me.skill_cd[SHIELD] == 0 /*&& me.short_attack_casting == -1*/ && me.long_attack_casting == -1) {
 		WAIT;
 		Shield(me.id);
 		GO;
@@ -258,14 +257,14 @@ int update() {
 			ad_weight = 1;
 			if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
 				if (me.ability >= zw_cost(LONG_ATTACK)) {
-						WAIT;
-						UpgradeSkill(me.id, LONG_ATTACK);
-						GO;
-						return 1;
-					}
-					else {
-						ad_weight = 0;
-					}
+					WAIT;
+					UpgradeSkill(me.id, LONG_ATTACK);
+					GO;
+					return 1;
+				}
+				else {
+					ad_weight = 0;
+				}
 			}
 		}
 		return 0;
@@ -274,8 +273,11 @@ int update() {
 void greedy() {
 	double check = me_radius;
 	if (emergency)return;
-	zw_enshaw();
-	memset(bitmap, 0, (MAX_SIZE >> 3) + 1);
+	//zw_enshaw();
+	int temp = MAX_SIZE >> 3;
+	for (;temp >= 0;--temp) {
+		bitmap[temp] = 0;
+	}
 	while (true) {
 		int next;
 		for (next = 0;next < num_of_food;next++) {
@@ -286,18 +288,18 @@ void greedy() {
 		bitmap[next >> 3] |= (0x80 >> (next & 0x07));
 		int i;
 		for (i = 0;i < num_of_food;i++) {
-				if (!(bitmap[i >> 3] & (0x80 >> (i & 0x07)))) {
-					if (distance(aim[num_of_aim].pos, food[i].pos) < check) {
-						/*aim[num_of_aim].pos = multiple(1.0 / (aim[num_of_aim].weight + food[i].weight),
-							add(multiple(aim[num_of_aim].weight, aim[num_of_aim].pos), multiple(food[i].weight, food[i].pos)));
-						aim[num_of_aim].weight += food[i].weight;*/
-						bitmap[i >> 3] |= (0x80 >> (i & 0x07));
-					}
+			if (!(bitmap[i >> 3] & (0x80 >> (i & 0x07)))) {
+				if (distance(aim[num_of_aim].pos, food[i].pos) < check) {
+					/*aim[num_of_aim].pos = multiple(1.0 / (aim[num_of_aim].weight + food[i].weight),
+					add(multiple(aim[num_of_aim].weight, aim[num_of_aim].pos), multiple(food[i].weight, food[i].pos)));
+					aim[num_of_aim].weight += food[i].weight;*/
+					bitmap[i >> 3] |= (0x80 >> (i & 0x07));
 				}
 			}
+		}
 		num_of_aim++;
 	}
-	qsort(aim+1, num_of_aim-1,sizeof(point), zw_cmp);
+	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
 }
 int zw_cmp(const void* p, const void* q) {
 	Position center = { kMapSize << 1,kMapSize << 1,kMapSize << 1 };
@@ -308,12 +310,12 @@ int zw_cmp(const void* p, const void* q) {
 	Position my = GetStatus()->objects[0].pos;
 	double dis1 = distance(my, ((point*)p)->pos);
 	double dis2 = distance(my, ((point*)q)->pos);
-	double w1 = (((point*)p)->weight)*(dot_product(q1,p1)+1.5);
-	double w2 = (((point*)q)->weight)*(dot_product(q2, p2)+1.5);
+	double w1 = (((point*)p)->weight)*(dot_product(q1, p1) + 1.5);
+	double w2 = (((point*)q)->weight)*(dot_product(q2, p2) + 1.5);
 	return ((w2 / dis2 - w1 / dis1) > 0);
 }
 int z_initial() {
-	Position center{kMapSize>>1,kMapSize>>1,kMapSize>>1};
+	Position center{ kMapSize >> 1,kMapSize >> 1,kMapSize >> 1 };
 	code = 0;
 	me = GetStatus()->objects[0];
 	me_radius = me.radius;
@@ -424,15 +426,15 @@ int initial() {
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
 			break;		case SOURCE: break;
-		case DEVOUR:
-			devour[num_of_devour] = (*map).objects[i].pos;
-			++num_of_devour;
-			break;
-		case BOSS:
-			boss_obj = (*map).objects[i];
-			code ^= SEE_BOSS;
-			break;
-		default: break;
+			case DEVOUR:
+				devour[num_of_devour] = (*map).objects[i].pos;
+				++num_of_devour;
+				break;
+			case BOSS:
+				boss_obj = (*map).objects[i];
+				code ^= SEE_BOSS;
+				break;
+			default: break;
 		}
 	}
 	return code;
@@ -455,14 +457,14 @@ int long_attack(const Object& target)
 	if (me.skill_cd[LONG_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
 		return -1;
 	}
 	if (distance(target.pos, me.pos) - target.radius - me.radius
-			> kLongAttackRange[me.skill_level[LONG_ATTACK]]) {
+	> kLongAttackRange[me.skill_level[LONG_ATTACK]]) {
 		return -1;
 	}
 	WAIT;
@@ -476,7 +478,7 @@ int short_attack(const Object& target)
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
