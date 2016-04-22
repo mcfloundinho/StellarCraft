@@ -3,6 +3,7 @@
 #include<math.h>
 #include<stdlib.h>
 #include<time.h>
+#include<iostream>
 #define MAX_SIZE 1000
 #define WAIT  while(GetTime()==operate_time);
 #define GO   (operate_time=GetTime());
@@ -107,6 +108,7 @@ double distance(Position a, Position b);//求AB两点距离
 void show(Position a);//输出矢量 
 					  //Main
 void AIMain() {
+	if (GetStatus()->team_id == 1)return;
 	for (;;) {
 		srand(time(0));
 		//PAUSE();
@@ -218,15 +220,36 @@ int update() {
 			}
 			else return 0;
 		}
-		else if (me.skill_level[SHORT_ATTACK] < kMaxSkillLevel) {
-			if (me.skill_level[DASH] < kMaxSkillLevel) {
-				if (me.ability >= zw_cost(SHORT_ATTACK)) {
-					WAIT;
-					UpgradeSkill(me.id, SHORT_ATTACK);
-					GO;
-					return 1;
+		else {
+			ad_weight = 5;//1st step of update finish
+			if (me.skill_level[SHORT_ATTACK] < kMaxSkillLevel) {
+				if (me.skill_level[DASH] < kMaxSkillLevel) {
+					if (me.ability >= zw_cost(SHORT_ATTACK)) {
+						WAIT;
+						UpgradeSkill(me.id, SHORT_ATTACK);
+						GO;
+						return 1;
+					}
+					else if (me.ability >= zw_cost(DASH)) {
+						WAIT;
+						UpgradeSkill(me.id, DASH);
+						GO;
+						return 1;
+					}
+					else return 0;
 				}
-				else if (me.ability >= zw_cost(DASH)) {
+				else {
+					if (me.ability >= zw_cost(SHORT_ATTACK)) {
+						WAIT;
+						UpgradeSkill(me.id, SHORT_ATTACK);
+						GO;
+						return 1;
+					}
+					else return 0;
+				}
+			}
+			else if (me.skill_level[DASH] < kMaxSkillLevel) {
+				if (me.ability >= zw_cost(DASH)) {
 					WAIT;
 					UpgradeSkill(me.id, DASH);
 					GO;
@@ -235,45 +258,29 @@ int update() {
 				else return 0;
 			}
 			else {
-				if (me.ability >= zw_cost(SHORT_ATTACK)) {
-					WAIT;
-					UpgradeSkill(me.id, SHORT_ATTACK);
-					GO;
-					return 1;
-				}
-				else return 0;
-			}
-		}
-		else if (me.skill_level[DASH] < kMaxSkillLevel) {
-			if (me.ability >= zw_cost(DASH)) {
-				WAIT;
-				UpgradeSkill(me.id, DASH);
-				GO;
-				return 1;
-			}
-			else return 0;
-		}
-		else {
-			ad_weight = 1;
-			if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
-				if (me.ability >= zw_cost(LONG_ATTACK)) {
-					WAIT;
-					UpgradeSkill(me.id, LONG_ATTACK);
-					GO;
-					return 1;
+				ad_weight = 3;//2st step of update finish
+				if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
+					if (me.ability >= zw_cost(LONG_ATTACK)) {
+						WAIT;
+						UpgradeSkill(me.id, LONG_ATTACK);
+						GO;
+						return 1;
+					}
+					else return 0;
 				}
 				else {
-					ad_weight = 0;
+					ad_weight = 0;//all finish
+					return 0;
 				}
 			}
+			return 0;
 		}
-		return 0;
 	}
 }
 void greedy() {
-	double check = me_radius;
+	double check = 1.2*me_radius;
 	if (emergency)return;
-	//zw_enshaw();
+	zw_enshaw();
 	int temp = MAX_SIZE >> 3;
 	for (;temp >= 0;--temp) {
 		bitmap[temp] = 0;
@@ -305,13 +312,13 @@ int zw_cmp(const void* p, const void* q) {
 	Position center = { kMapSize << 1,kMapSize << 1,kMapSize << 1 };
 	Position p1 = norm(minus(((point*)p)->pos, me.pos));
 	Position p2 = norm(minus(((point*)q)->pos, me.pos));
-	Position q1 = norm(minus(((point*)p)->pos, center));
-	Position q2 = norm(minus(((point*)q)->pos, center));
+	/*Position q1 = norm(minus(((point*)p)->pos, center));
+	Position q2 = norm(minus(((point*)q)->pos, center));*/
 	Position my = GetStatus()->objects[0].pos;
 	double dis1 = distance(my, ((point*)p)->pos);
 	double dis2 = distance(my, ((point*)q)->pos);
-	double w1 = (((point*)p)->weight)*(dot_product(q1, p1) + 1.5);
-	double w2 = (((point*)q)->weight)*(dot_product(q2, p2) + 1.5);
+	double w1 = (((point*)p)->weight)/**(dot_product(q1, p1) + 1.5)*/;
+	double w2 = (((point*)q)->weight)/**(dot_product(q2, p2) + 1.5)*/;
 	return ((w2 / dis2 - w1 / dis1) > 0);
 }
 int z_initial() {
@@ -359,11 +366,11 @@ int z_initial() {
 	return code;
 }
 void avoid() {
-	go_for = aim[1].pos;
+	go_for = aim[0].pos;
 }
 void move() {
 	Position speed;
-	double mode = (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
+	double mode = (10+kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
 	speed = multiple(mode, minus(go_for, me.pos));
 	Move(me.id, speed);
 	last_move = norm(speed);
@@ -377,16 +384,19 @@ point mi_zhi_yin_qiu_yang(int n) {
 	}
 }
 void zw_enshaw() {
+	double len = 2*me.radius;
+	int div = 10;
 	num_of_aim = 1;
 	Position force = { 0.0,0.0,0.0 };
 	int n = num_of_food - 1;
 	for (;n >= 0;n--) {
 		Position point_to = minus(food[n].pos, me.pos);
-		double k = 2.5*me_radius / length(point_to);
-		force = add(force, multiple(k*k*food[n].weight, point_to));
+		double k = me_radius / length(point_to);
+		force = add(force, multiple(k*k*food[n].weight*food[n].weight, point_to));
 	}
-	aim[0].pos = add(me.pos, force);
-	aim[0].weight = en_weight;
+	aim[0].weight = length(force);
+	aim[0].pos = add(me.pos, multiple(len / aim[0].weight, force));
+	aim[0].weight = aim[0].weight>>div;
 }
 int initial() {
 	me = GetStatus()->objects[0];
