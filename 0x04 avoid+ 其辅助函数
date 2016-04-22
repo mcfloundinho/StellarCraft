@@ -1,0 +1,84 @@
+void avoid()
+{
+	int IsDevour(double d, Position des, Position speed);
+	Position Schmidt(Position a1, Position a2);
+	int flag;//记录是否选取
+	int j, devour_count;
+	Position aim_devour;
+	for (int i = 0;i<num_of_aim;i++)
+	{
+		flag = 1;
+		for (j = 0;j<num_of_devour;j++)
+		{
+			if (distance(aim[i].pos, devour[j])<1*me.radius)//如果目标附近有吞噬者
+				if (distance(aim[i].pos, me.pos)> distance(devour[j], me.pos))
+					flag = 0;
+		}
+		if (flag==0)
+		{
+			printf("too close!throw it away！\n");
+			continue;
+		}
+		else
+		{
+			devour_count = 0;
+			Position speed = minus(aim[i].pos, me.pos);
+			for (j = 0;j<num_of_devour;j++)
+			{
+				if (IsDevour(1.1*me.radius, devour[j], speed))
+				{
+					devour_count++;
+					aim_devour = devour[j];
+				}
+			}
+			if (devour_count >= 2)
+			{
+				printf("devour太多了，处理ing\n");
+				continue;
+			}
+			else
+				if (devour_count == 1)
+				{
+					printf("warning!!\n");
+					Position a2 = minus(aim_devour, me.pos);
+					go_for = add(me.pos, Schmidt(speed,a2));
+					break;
+				}
+				else
+				{
+					//printf("aimnumber=%d, i=%d\n",num_of_aim,i);
+					go_for = aim[i].pos;
+					break;
+				}
+		}
+	}
+	//go_for=aim[0].pos;
+
+}
+Position Schmidt(Position a1, Position a2)
+{
+	Position temp1, temp2;
+	temp2 = multiple(dot_product(a1, a2) / dot_product(a2, a2), a2);
+	temp1 = minus(a1, temp2);
+	return temp1;
+}
+int IsDevour(double d, Position des, Position speed)//判断下一时刻会不会碰到吞噬者
+{
+	Position MaximumSpeed(Position vec);
+	int flag = 0;
+	Position Next;
+	for (int i = 1;i <= 10;i++)
+	{
+		Next = add(me.pos, multiple(i, MaximumSpeed(speed)));
+		if (distance(Next, des)<d)
+			flag = 1;
+	}
+	return flag;
+}
+Position MaximumSpeed(Position vec) {
+	register double len = length(vec);
+	vec.x *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
+	vec.y *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
+	vec.z *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
+	return vec;
+}
