@@ -21,42 +21,10 @@ struct ball {
 	Position center;
 	double radius;
 };
-////variable							initial							use
-//PlayerObject me;//					initial()						almost everywhere
-//int emergency;	//					opponent(),boss()				greedy()
-//int ad_weight = 10;//				initial()						initial()
-//int num_of_aim;//					greedy()						avoid()
-//int num_of_food;//					initial()						greedy()
-//int num_of_devour;//				initial()						avoid()
-//int en_weight = 20;
-//int code;//							initial()						AIMain()&greedy()
-//double me_radius;//					initial()						almost everywhere
 double opponent_radius;//			initial()						opponent()
 double boss_radius;//				initial()						greedy()
 Position boss_pos;//				initial()						action()
 Position opponent_pos;//			initial()						opponent()
-					  //point aim[MAX_SIZE];//				greedy()						avoid()
-					  //point food[MAX_SIZE];//				initial()						greedy()
-					  //Position devour[MAX_SIZE];//		initial()						avoid()
-					  //ball devour_for_YQY[MAX_SIZE];//	initial()						avoid()
-					  //point solution[NUM_OF_SOLUTION];//	opponent(),boss()				avoid()
-					  //Position go_for;//					avoid()							move()
-					  //Position last_move;//				move()							move()
-					  //int operate_time;//					after any action				before any action		
-					  ////core function						function						author	round_cost
-					  //int initial();//					initial,update the basic value	ARC
-					  //void greedy();//					find the best food				ZWT
-					  //int update();//						update the skills, shield		ZWT		1cost
-					  //void avoid();//						avoid the devour and border		YQY
-					  //int opponent();//					deal with the opponent			PLU		1cost
-					  //int boss();//						smaller, kill; bigger, eat		ARC		1cost		
-					  //void move();//						move to							PLU		1cost
-					  ////auxiliary variables
-					  //char bitmap[(MAX_SIZE >> 3)+1];
-					  ////auxiliary function
-					  //point mi_zhi_yin_qiu_yang(int n);
-					  //int zw_cost(int skill);
-					  //int zw_cmp(const void*, const void*);
 PlayerObject me;//					initial()						almost everywhere
 int emergency;	//					opponent(),boss()				greedy()
 int ad_weight = 100;//				initial()						initial()
@@ -65,12 +33,8 @@ int num_of_food;//					initial()						greedy()
 int num_of_devour;//				initial()						avoid()
 int code;//							initial()						AIMain()&greedy()
 double me_radius;//					initial()						almost everywhere
-				 /* To Archer: uncomment these if you consider it necessary
-				 double opponent_radius;//			initial()						opponent()
-				 double boss_radius;//				initial()						greedy()
-				 */
-Object boss_obj;//				initial()						action()
-Object opponent_obj;//			initial()						opponent()
+Object boss_obj;//					initial()						action()
+Object opponent_obj;//				initial()						opponent()
 point aim[MAX_SIZE];//				greedy()						avoid()
 point food[MAX_SIZE];//				initial()						greedy()
 Position devour[MAX_SIZE];//		initial()						avoid()
@@ -78,8 +42,8 @@ ball devour_for_YQY[MAX_SIZE];//	initial()						avoid()
 point solution[NUM_OF_SOLUTION];//	opponent(),boss()				avoid()
 Position go_for;//					avoid()							move()
 Position last_move;//				move()							move()
-int operate_time;//					after any action				before any action		
-				 //core function						function						author	round_cost
+int operate_time;//					after any action				before any action
+//core function						usage							author	time cost
 int initial();//					initial,update the basic value	ARC
 void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
@@ -87,7 +51,7 @@ void avoid();//						avoid the devour and border		YQY
 int opponent();//					deal with the opponent			PLU		1cost
 int boss();//						smaller, kill; bigger, eat		ARC		1cost		
 void move();//						move to							PLU		1cost
-			//auxiliary variables
+//auxiliary variables
 int en_weight = 20;
 char bitmap[(MAX_SIZE >> 3) + 1];
 //auxiliary function
@@ -106,7 +70,7 @@ double length(Position a);//求矢量模长
 Position norm(Position a);//求单位矢量
 double distance(Position a, Position b);//求AB两点距离
 void show(Position a);//输出矢量 
-					  //Main
+//Main
 void AIMain() {
 	if (GetStatus()->team_id == 1)return;
 	for (;;) {
@@ -115,7 +79,7 @@ void AIMain() {
 		code = initial();
 		update();
 		if (code&OPPONENT) {
-			opponent();
+			//opponent();
 		}
 		if (code&SEE_BOSS) {
 			boss();
@@ -321,50 +285,6 @@ int zw_cmp(const void* p, const void* q) {
 	double w2 = (((point*)q)->weight)/**(dot_product(q2, p2) + 1.5)*/;
 	return ((w2 / dis2 - w1 / dis1) > 0);
 }
-int z_initial() {
-	Position center{ kMapSize >> 1,kMapSize >> 1,kMapSize >> 1 };
-	code = 0;
-	me = GetStatus()->objects[0];
-	me_radius = me.radius;
-	emergency = 0;
-	num_of_aim = 0;
-	num_of_food = 0;
-	num_of_devour = 0;
-	const Map* map = GetMap();
-	int n = map->objects_number - 1;
-	for (;n >= 0;--n) {
-		switch (map->objects[n].type) {
-		case BOSS:
-			code |= SEE_BOSS;
-			boss_pos = map->objects[n].pos;
-			boss_radius = map->objects[n].radius;
-			break;
-		case PLAYER:
-			if (map->objects[n].team_id != GetStatus()->team_id) {
-				code |= OPPONENT;
-				opponent_pos = map->objects[n].pos;
-				opponent_radius = map->objects[n].radius;
-			}
-			break;
-		case ENERGY:
-			if (distance(map->objects[n].pos, center) < (kMapSize << 1)) {
-				food[num_of_food].pos = map->objects[n].pos;
-				food[num_of_food].weight = 1;
-				++num_of_food;
-			}
-			break;
-		case ADVANCED_ENERGY:
-			food[num_of_food].pos = map->objects[n].pos;
-			food[num_of_food].weight = ad_weight;
-			++num_of_food;
-			break;
-		case DEVOUR:
-			devour[num_of_devour++] = map->objects[n].pos;
-			break;
-		}
-	}
-	return code;
-}
 void avoid() {
 	go_for = aim[0].pos;
 }
@@ -385,7 +305,7 @@ point mi_zhi_yin_qiu_yang(int n) {
 }
 void zw_enshaw() {
 	double len = 2*me.radius;
-	int div = 10;
+	int div = 10;//?
 	num_of_aim = 1;
 	Position force = { 0.0,0.0,0.0 };
 	int n = num_of_food - 1;
