@@ -384,6 +384,36 @@ void move() {
 	Position speed;
 	double mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
 	speed = multiple(mode, minus(go_for, me.pos));
+	// edge
+	if (me.radius > 8000) {
+		const double threshold = 500;
+		if (me.pos.x - me.radius < threshold && speed.x < 0) {
+			speed.x = 0;
+		}
+		if (me.pos.y - me.radius < threshold && speed.y < 0) {
+			speed.y = 0;
+		}
+		if (me.pos.z - me.radius < threshold && speed.z < 0) {
+			speed.z = 0;
+		}
+		if (kMapSize - me.pos.x - me.radius < threshold && speed.x > 0) {
+			speed.x = 0;
+		}
+		if (kMapSize - me.pos.y - me.radius < threshold && speed.y > 0) {
+			speed.y = 0;
+		}
+		if (kMapSize - me.pos.z - me.radius < threshold && speed.z > 0) {
+			speed.z = 0;
+		}
+		if (length(speed) == 0) {
+			printf("center\n");
+			mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos);
+			speed = multiple(mode, minus({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos));
+		}
+		else {
+			speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]), norm(speed));
+		}
+	}
 	Move(me.id, speed);
 	last_move = norm(speed);
 }
