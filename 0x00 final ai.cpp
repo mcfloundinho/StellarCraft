@@ -1,4 +1,4 @@
-﻿#include "teamstyle17.h"
+#include "teamstyle17.h"
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
