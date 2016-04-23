@@ -9,6 +9,7 @@
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
 enum value {
+	LOW_ENERGY_VALUE = (int)1e5,
 	ENERGY_VALUE = (int)1e6,
 	HIGHLY_ADVANCED_VALUE = (int)1e8,
 	MID_ADVANCED_VALUE = (int)1e7,
@@ -87,7 +88,7 @@ void AIMain() {
 		update();
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&OPPONENT) {
-			//opponent();
+			opponent();
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&SEE_BOSS) {
@@ -101,7 +102,7 @@ void AIMain() {
 		AVOID:
 			initial();
 		}
-		if (me.health < 0.5 * me.max_health || (me.shield_time < 10 && me.skill_level[SHIELD] == 5)) {
+		if (me.health < 0.5 * me.max_health || (me.shield_time < 10 && me.skill_level[SHIELD] == kMaxSkillLevel)) {
 			avoid();
 		}
 		else {
@@ -289,9 +290,9 @@ void greedy() {
 		aim[temp].weight /= distance(aim[temp].pos, me.pos);
 	}
 	//std::cout << "++" << std::endl;
-	for (int temp = num_of_aim - 1; ~temp; --temp) {
+	//for (int temp = num_of_aim - 1; ~temp; --temp) {
 		//std::cout << aim[temp].weight << std::endl;
-	}
+	//}
 	//std::cout << "++" << std::endl;
 	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
 }
@@ -465,7 +466,7 @@ int initial() {
 			if ((*map).objects[i].pos.x + 0.75 * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.y + 0.75 * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.z + 0.75 * me_radius > kMapSize) break;
-			food[num_of_food].weight = ENERGY_VALUE;
+			food[num_of_food].weight = me.skill_level[SHIELD] < kMaxSkillLevel ? LOW_ENERGY_VALUE : ENERGY_VALUE;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
 			break;
@@ -497,7 +498,7 @@ int initial() {
 }
 int boss() {
 	if (boss_radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 100;
+		solution[SEE_BOSS].weight = 2000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		return 0;
 	}
@@ -559,14 +560,14 @@ int opponent()
 	}
 	if (opponent_obj.radius > me.radius * 1.1) {
 		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
-		solution[OPPONENT].weight = 10000;
+		solution[OPPONENT].weight = 1e9;
 		if (distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
 			emergency = 1;
 		}
 	}
 	else if (opponent_obj.radius < me.radius * 0.8) {
 		solution[OPPONENT].pos = add(me.pos, minus(opponent_obj.pos, me.pos));
-		solution[OPPONENT].weight = 15;
+		solution[OPPONENT].weight = 2000;
 	}
 	return result;
 }
