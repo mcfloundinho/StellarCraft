@@ -9,7 +9,7 @@
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
 enum value {
-	LOW_ENERGY_VALUE = (int)1e5,
+	LOW_ENERGY_VALUE = (int)1e0,
 	ENERGY_VALUE = (int)1e6,
 	HIGHLY_ADVANCED_VALUE = (int)1e8,
 	MID_ADVANCED_VALUE = (int)1e7,
@@ -102,7 +102,7 @@ void AIMain() {
 		AVOID:
 			initial();
 		}
-		if (me.health < 0.5 * me.max_health || (me.shield_time < 10 && me.skill_level[SHIELD] == kMaxSkillLevel)) {
+		if (me.skill_level[SHIELD] < kMaxSkillLevel || me.shield_time < 10) {
 			avoid();
 		}
 		else {
@@ -253,10 +253,8 @@ int update() {
 				}
 				else {
 					ad_weight = TRASH;
-					printf("%d\n", me.ability);
 					if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
 						if (me.ability >= zw_cost(VISION_UP)) {
-							printf("vision\n");
 							WAIT;
 							UpgradeSkill(me.id, VISION_UP);
 							GO;
