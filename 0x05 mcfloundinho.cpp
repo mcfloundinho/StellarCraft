@@ -558,6 +558,10 @@ int opponent()
 	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
 		result = 1;
 	}
+	if (opponent_obj.radius > me.radius && me.skill_level[SHORT_ATTACK] == 0) {
+		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+		solution[OPPONENT].weight = 1e8;
+	}
 	if (opponent_obj.radius > me.radius * 1.1) {
 		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
 		solution[OPPONENT].weight = 1e9;
