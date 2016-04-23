@@ -495,17 +495,30 @@ int initial() {
 	return code;
 }
 int boss() {
+	emergency = code = 0;
 	if (boss_radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 100;
+		solution[SEE_BOSS].weight = 1e9;
 		solution[SEE_BOSS].pos = boss_obj.pos;
-		return 0;
+		return code;
 	}
-	else {
-		emergency = me_radius < boss_radius * kEatableRatio ? 1 : 0;
-		int tmp = short_attack(boss_obj);
-		if (!~tmp) tmp = long_attack(boss_obj);
-		return (~tmp) ? 1 : 0;
+	if (me_radius < boss_radius * kEatableRatio * 1.05) emergency = 1;
+	int tmp = short_attack(boss_obj);
+	if (!~tmp) tmp = long_attack(boss_obj);
+	if (~tmp) code = 1;
+	if (emergency){
+		solution[SEE_BOSS].weight = 1e9;
+		solution[SEE_BOSS].pos = add(me.pos, multiple(1e3, norm(minus(me.pos, boss_obj.pos))));
 	}
+	else{
+		solution[SEE_BOSS].weight = 1;
+		solution[SEE_BOSS].pos = me.pos;
+	}
+	if (boss_radius < me_radius * kEatableRatio) {
+		emergency = 0;
+		solution[SEE_BOSS].weight = 1e9;
+		solution[SEE_BOSS].pos = boss_obj.pos;
+	}
+	return code;
 }
 int long_attack(const Object& target)
 {
