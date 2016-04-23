@@ -97,7 +97,10 @@ void AIMain() {
 		if (!emergency) {
 			greedy();
 		}
-	AVOID:
+		if (false) {
+		AVOID:
+			initial();
+		}
 		avoid();
 		move();
 	}
@@ -295,13 +298,6 @@ int zw_cmp(const void* p, const void* q) {
 void avoid()
 {
 	me = GetStatus()->objects[0];
-	Position default_pos[6];
-	default_pos[0] = add(me.pos, { 1000,0,0 });
-	default_pos[1] = add(me.pos, { -1000,0,0 });
-	default_pos[2] = add(me.pos, { 0,1000,0 });
-	default_pos[3] = add(me.pos, { 0,-1000,0 });
-	default_pos[4] = add(me.pos, { 0,0,1000 });
-	default_pos[5] = add(me.pos, { 0,0,-1000 });
 	int IsDevour(double d, Position des, Position speed);
 	Position Schmidt(Position a1, Position a2);
 	int flag;//记录是否选取
