@@ -332,12 +332,34 @@ int zw_cmp(const void* p, const void* q) {
 void avoid()
 {
 	me = GetStatus()->objects[0];
+	Position default_pos[6];
+	const Position a[6]={{ 1000,0,0 },{ -1000,0,0 },{ 0,1000,0 },{ 0,-1000,0 },{ 0,0,1000 },{ 0,0,-1000 }};
+	default_pos[0] = add(me.pos, a[0]);
+	default_pos[1] = add(me.pos, a[1]);
+	default_pos[2] = add(me.pos, a[2]);
+	default_pos[3] = add(me.pos, a[3]);
+	default_pos[4] = add(me.pos, a[4]);
+	default_pos[5] = add(me.pos, a[5]);
 	int IsDevour(double d, Position des, Position speed);
 	Position Schmidt(Position a1, Position a2);
 	int flag;//记录是否选取
+	int flag2;//记录是否在瞬移后前进方向有devour
 	int j, devour_count;
+	int devour_danger;
 	int i;
 	Position aim_devour;
+	if (solution[2].weight>aim[0].weight)
+	{
+		go_for=solution[2].pos;
+		printf("遇见boss了！！好怕怕！！\n");
+		return;
+	}
+	if (distance(aim[0].pos,me.pos)/kMaxMoveSpeed<=me.shield_time && me.skill_level[SHIELD]==5)
+	{
+		go_for=aim[0].pos;
+		printf("hahaha\n");
+		return ;
+	}
 	for (i = 0;i<num_of_aim;i++)
 	{
 		flag = 1;
@@ -347,44 +369,82 @@ void avoid()
 				if (distance(aim[i].pos, me.pos)> 0.5*distance(devour[j], me.pos))
 					flag = 0;
 		}
-		if (flag == 0)
+		if (flag == 0)//旁边有devour，扔掉
 		{
 			printf("throw it away!\n");
 			continue;
 		}
 		else
 		{
-			devour_count = 0;
 			Position speed = minus(aim[i].pos, me.pos);
-			for (j = 0;j<num_of_devour;j++)
+			devour_count = 0;
+			if (distance(aim[i].pos,me.pos)/kMaxMoveSpeed<=me.shield_time && me.skill_level[SHIELD]==5)
 			{
-				if (IsDevour(1.1*me.radius, devour[j], speed))
+				devour_danger=0;
+				printf("hahaha\n");
+			}
+			else
+				devour_danger=1;
+			if(devour_danger)
+			{
+				for (j = 0;j<num_of_devour;j++)
 				{
-					devour_count++;
-					aim_devour = devour[j];
+					if (IsDevour(1.1*me.radius, devour[j], speed))
+					{
+						devour_count++;
+						aim_devour = devour[j];
+					}
 				}
 			}
 			if (devour_count >= 2)
-			{
 				continue;
-			}
 			else
 				if (devour_count == 1)
 				{
 					printf("warning\n");
 					Position a2 = minus(aim_devour, me.pos);
-					go_for = add(me.pos, Schmidt(speed, a2));
-					break;
+					/*if (IsBorder(1.1*me.radius,add(me.pos, speed)))
+					{
+						printf("边界哦！\n");
+						speed=FBorder(1.1*me.radius,speed);
+					}*/
+					speed=Schmidt(speed, a2);
+					go_for = add(me.pos, speed);
+					return;
 				}
 				else
 				{
 					go_for = aim[i].pos;
-					break;
+					return;
 				}
 		}
 	}
-	if (i == num_of_aim) {
-		//do sth for default
+	if (i == num_of_aim) 
+	{
+		printf("瞬移了！\n");
+		flag2=0;
+		for(j=0;j<num_of_devour;j++)
+		{
+			if (IsDevour(1.5*me.radius, devour[j], me.speed))
+				flag2=1;
+		}
+		if (!flag2)//如果没有问题
+		{
+			go_for=add(me.pos,me.speed);
+			return;
+		}
+		else//有问题，随机一个没有devour的方向
+		{
+			for(i=0;i<6;i++)
+			{
+				for(j=0;j<num_of_devour;j++)
+					if (!IsDevour(1.5*me.radius, devour[j], a[i]))
+					{
+						go_for=default_pos[i];
+						return;
+					}
+			}
+		}
 	}
 }
 Position Schmidt(Position a1, Position a2)
@@ -399,7 +459,7 @@ int IsDevour(double d, Position des, Position speed)//判断下一时刻会不�
 	Position MaximumSpeed(Position vec);
 	int flag = 0;
 	Position Next;
-	for (int i = 1;i <= 10;i++)
+	for (int i = 1;i <= 8;i++)
 	{
 		Next = add(me.pos, multiple(i, MaximumSpeed(speed)));
 		if (distance(Next, des)<d)
@@ -450,6 +510,8 @@ int initial() {
 	me_radius = me.radius;
 	const Map *map = GetMap();
 	int i = (*map).objects_number - 1;
+	double r=1.1;
+	Position a[8]={{ 0, 0, 0 }, { 0, 0, kMapSize },{ 0, kMapSize, 0 },{ 0, kMapSize, kMapSize },{ kMapSize, 0, 0 },{ kMapSize, 0, kMapSize },{ kMapSize, kMapSize, 0 },{ kMapSize, kMapSize, kMapSize }};
 	for (; ~i; --i) {
 		switch ((*map).objects[i].type) {
 		case PLAYER:
@@ -458,29 +520,30 @@ int initial() {
 			code ^= OPPONENT;
 			break;
 		case ENERGY:
-			if ((*map).objects[i].pos.x - 0.75 * me_radius < 0) break;
-			if ((*map).objects[i].pos.y - 0.75 * me_radius < 0) break;
-			if ((*map).objects[i].pos.z - 0.75 * me_radius < 0) break;
-			if ((*map).objects[i].pos.x + 0.75 * me_radius > kMapSize) break;
-			if ((*map).objects[i].pos.y + 0.75 * me_radius > kMapSize) break;
-			if ((*map).objects[i].pos.z + 0.75 * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.x - r * me_radius < 0) break;
+			if ((*map).objects[i].pos.y - r * me_radius < 0) break;
+			if ((*map).objects[i].pos.z - r * me_radius < 0) break;
+			if ((*map).objects[i].pos.x + r * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.y + r * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.z + r * me_radius > kMapSize) break;
 			food[num_of_food].weight = ENERGY_VALUE;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
 			break;
 		case ADVANCED_ENERGY:
-			if (distance((*map).objects[i].pos, { 0, 0, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, a[0]) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, a[1]) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, a[2]) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, a[3]) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, a[4]) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, a[5]) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, a[6]) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, a[7]) < r * me_radius) break;
 			food[num_of_food].weight = ad_weight;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
-			break;		case SOURCE: break;
+			break;		
+		case SOURCE: break;
 			case DEVOUR:
 				devour[num_of_devour] = (*map).objects[i].pos;
 				++num_of_devour;
@@ -564,7 +627,8 @@ int opponent()
 {
 	const double safe_distance = 1000;
 	int result = 0;
-	solution[OPPONENT].pos = { kMapSize / 2, kMapSize / 2, kMapSize / 2 };
+	Position temp={ kMapSize / 2, kMapSize / 2, kMapSize / 2 };
+	solution[OPPONENT].pos = temp;
 	solution[OPPONENT].weight = 0;
 	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
 		result = 1;
