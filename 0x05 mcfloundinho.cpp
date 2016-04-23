@@ -252,8 +252,20 @@ int update() {
 					else return 0;
 				}
 				else {
-					ad_weight = TRASH;//all finish
-					return 0;
+					ad_weight = TRASH;
+					printf("%d\n", me.ability);
+					if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
+						if (me.ability >= zw_cost(VISION_UP)) {
+							printf("vision\n");
+							WAIT;
+							UpgradeSkill(me.id, VISION_UP);
+							GO;
+							return 1;
+						}
+					}
+					else {
+						return 0;
+					}
 				}
 			}
 			return 0;
@@ -291,7 +303,7 @@ void greedy() {
 	}
 	//std::cout << "++" << std::endl;
 	//for (int temp = num_of_aim - 1; ~temp; --temp) {
-		//std::cout << aim[temp].weight << std::endl;
+	//std::cout << aim[temp].weight << std::endl;
 	//}
 	//std::cout << "++" << std::endl;
 	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
