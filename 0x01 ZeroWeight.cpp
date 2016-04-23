@@ -8,6 +8,13 @@
 #define WAIT  while(GetTime()==operate_time);
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
+enum value {
+	ENERGY_VALUE = (int)1e6,
+	HIGHLY_ADVANCED_VALUE= (int)1e8,
+	MID_ADVANCED_VALUE= (int)1e7,
+	LOW_ADVANCED_VALUE= (int)1e6,
+	TRASH=0,
+};
 enum situation {
 	NONE = 0,
 	OPPONENT = 1 << 0,
@@ -27,7 +34,7 @@ Position boss_pos;//				initial()						action()
 Position opponent_pos;//			initial()						opponent()
 PlayerObject me;//					initial()						almost everywhere
 int emergency;	//					opponent(),boss()				greedy()
-int ad_weight = 100;//				initial()						initial()
+int ad_weight = HIGHLY_ADVANCED_VALUE;//				initial()						initial()
 int num_of_aim;//					greedy()						avoid()
 int num_of_food;//					initial()						greedy()
 int num_of_devour;//				initial()						avoid()
@@ -75,7 +82,6 @@ void AIMain() {
 	if (GetStatus()->team_id == 1)return;
 	for (;;) {
 		srand(time(0));
-		//PAUSE();
 		code = initial();
 		update();
 		if (code&OPPONENT) {
@@ -88,7 +94,6 @@ void AIMain() {
 			greedy();
 		}
 		avoid();
-		//CONTINUE();
 		move();
 	}
 }
@@ -185,7 +190,7 @@ int update() {
 			else return 0;
 		}
 		else {
-			ad_weight = 5;//1st step of update finish
+			ad_weight = MID_ADVANCED_VALUE;//1st step of update finish
 			if (me.skill_level[SHORT_ATTACK] < kMaxSkillLevel) {
 				if (me.skill_level[DASH] < kMaxSkillLevel) {
 					if (me.ability >= zw_cost(SHORT_ATTACK)) {
@@ -222,7 +227,7 @@ int update() {
 				else return 0;
 			}
 			else {
-				ad_weight = 3;//2st step of update finish
+				ad_weight = LOW_ADVANCED_VALUE;//2st step of update finish
 				if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
 					if (me.ability >= zw_cost(LONG_ATTACK)) {
 						WAIT;
@@ -233,7 +238,7 @@ int update() {
 					else return 0;
 				}
 				else {
-					ad_weight = 0;//all finish
+					ad_weight = TRASH;//all finish
 					return 0;
 				}
 			}
@@ -261,32 +266,104 @@ void greedy() {
 		for (i = 0;i < num_of_food;i++) {
 			if (!(bitmap[i >> 3] & (0x80 >> (i & 0x07)))) {
 				if (distance(aim[num_of_aim].pos, food[i].pos) < check) {
-					/*aim[num_of_aim].pos = multiple(1.0 / (aim[num_of_aim].weight + food[i].weight),
-					add(multiple(aim[num_of_aim].weight, aim[num_of_aim].pos), multiple(food[i].weight, food[i].pos)));
-					aim[num_of_aim].weight += food[i].weight;*/
 					bitmap[i >> 3] |= (0x80 >> (i & 0x07));
 				}
 			}
 		}
 		num_of_aim++;
 	}
+	for (int temp = num_of_aim - 1;temp>0;--temp) {
+		aim[temp].weight /= distance(aim[temp].pos, me.pos);
+	}
+	std::cout << "++" << std::endl;
+	for (int temp = num_of_aim - 1;~temp;--temp) {
+		std::cout << aim[temp].weight << std::endl;
+	}
+	std::cout << "++" << std::endl;
 	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
 }
 int zw_cmp(const void* p, const void* q) {
-	Position center = { kMapSize << 1,kMapSize << 1,kMapSize << 1 };
-	Position p1 = norm(minus(((point*)p)->pos, me.pos));
-	Position p2 = norm(minus(((point*)q)->pos, me.pos));
-	/*Position q1 = norm(minus(((point*)p)->pos, center));
-	Position q2 = norm(minus(((point*)q)->pos, center));*/
-	Position my = GetStatus()->objects[0].pos;
-	double dis1 = distance(my, ((point*)p)->pos);
-	double dis2 = distance(my, ((point*)q)->pos);
-	double w1 = (((point*)p)->weight)/**(dot_product(q1, p1) + 1.5)*/;
-	double w2 = (((point*)q)->weight)/**(dot_product(q2, p2) + 1.5)*/;
-	return ((w2 / dis2 - w1 / dis1) > 0);
+	int w1 = (((point*)p)->weight);
+	int w2 = (((point*)q)->weight);
+	return ((w2 - w1) > 0);
 }
-void avoid() {
-	go_for = aim[0].pos;
+void avoid()
+{
+	int IsDevour(double d, Position des, Position speed);
+	Position Schmidt(Position a1, Position a2);
+	int flag;//记录是否选取
+	int j, devour_count;
+	Position aim_devour;
+	for (int i = 0;i<num_of_aim;i++)
+	{
+		flag = 1;
+		for (j = 0;j<num_of_devour;j++)
+		{
+			if (distance(aim[i].pos, devour[j])<1 * me.radius)//如果目标附近有吞噬者
+				if (distance(aim[i].pos, me.pos)> 0.5*distance(devour[j], me.pos))
+					flag = 0;
+		}
+		if (flag == 0)
+		{
+			continue;
+		}
+		else
+		{
+			devour_count = 0;
+			Position speed = minus(aim[i].pos, me.pos);
+			for (j = 0;j<num_of_devour;j++)
+			{
+				if (IsDevour(1.1*me.radius, devour[j], speed))
+				{
+					devour_count++;
+					aim_devour = devour[j];
+				}
+			}
+			if (devour_count >= 2)
+			{
+				continue;
+			}
+			else
+				if (devour_count == 1)
+				{
+					Position a2 = minus(aim_devour, me.pos);
+					go_for = add(me.pos, Schmidt(speed, a2));
+					break;
+				}
+				else
+				{
+					go_for = aim[i].pos;
+					break;
+				}
+		}
+	}
+}
+Position Schmidt(Position a1, Position a2)
+{
+	Position temp1, temp2;
+	temp2 = multiple(dot_product(a1, a2) / dot_product(a2, a2), a2);
+	temp1 = minus(a1, temp2);
+	return temp1;
+}
+int IsDevour(double d, Position des, Position speed)//判断下一时刻会不会碰到吞噬者
+{
+	Position MaximumSpeed(Position vec);
+	int flag = 0;
+	Position Next;
+	for (int i = 1;i <= 10;i++)
+	{
+		Next = add(me.pos, multiple(i, MaximumSpeed(speed)));
+		if (distance(Next, des)<d)
+			flag = 1;
+	}
+	return flag;
+}
+Position MaximumSpeed(Position vec) {
+	register double len = length(vec);
+	vec.x *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
+	vec.y *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
+	vec.z *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
+	return vec;
 }
 void move() {
 	Position speed;
@@ -305,18 +382,17 @@ point mi_zhi_yin_qiu_yang(int n) {
 }
 void zw_enshaw() {
 	double len = 2*me.radius;
-	int div = 10;//?
+	double div = 3.5e-7;//?
 	num_of_aim = 1;
 	Position force = { 0.0,0.0,0.0 };
 	int n = num_of_food - 1;
 	for (;n >= 0;n--) {
 		Position point_to = minus(food[n].pos, me.pos);
 		double k = me_radius / length(point_to);
-		force = add(force, multiple(k*k*food[n].weight*food[n].weight, point_to));
+		force = add(force, multiple(k*k*food[n].weight, point_to));
 	}
-	aim[0].weight = length(force);
-	aim[0].pos = add(me.pos, multiple(len / aim[0].weight, force));
-	aim[0].weight = aim[0].weight>>div;
+	aim[0].weight = (int)((length(force))*div);
+	aim[0].pos = add(me.pos, force);
 }
 int initial() {
 	me = GetStatus()->objects[0];
@@ -339,7 +415,7 @@ int initial() {
 			if ((*map).objects[i].pos.x + 0.75 * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.y + 0.75 * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.z + 0.75 * me_radius > kMapSize) break;
-			food[num_of_food].weight = 1;
+			food[num_of_food].weight = ENERGY_VALUE;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
 			break;
