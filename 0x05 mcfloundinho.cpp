@@ -101,7 +101,12 @@ void AIMain() {
 		AVOID:
 			initial();
 		}
-		avoid();
+		if (me.health < 0.5 * me.max_health || (me.shield_time < 10 && me.skill_level[SHIELD] == 5)) {
+			avoid();
+		}
+		else {
+			go_for = aim[0].pos;
+		}
 		move();
 	}
 }
