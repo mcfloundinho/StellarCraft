@@ -172,7 +172,7 @@ int zw_cost(int skill) {
 	}
 }
 int update() {
-	if (me.skill_cd[SHIELD] == 0 /*&& me.short_attack_casting == -1*/ && me.long_attack_casting == -1) {
+	if (me.skill_cd[SHIELD] == 0 && me.short_attack_casting == -1 && me.long_attack_casting == -1) {
 		WAIT;
 		Shield(me.id);
 		GO;
@@ -508,7 +508,7 @@ int long_attack(const Object& target)
 	if (me.skill_cd[LONG_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
@@ -528,7 +528,7 @@ int short_attack(const Object& target)
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
