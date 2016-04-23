@@ -322,11 +322,6 @@ void greedy() {
 	for (int temp = num_of_aim - 1;temp>0;--temp) {
 		aim[temp].weight /= distance(aim[temp].pos, me.pos);
 	}
-	std::cout << "++" << std::endl;
-	for (int temp = num_of_aim - 1;~temp;--temp) {
-		std::cout << aim[temp].weight << std::endl;
-	}
-	std::cout << "++" << std::endl;
 	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
 }
 int zw_cmp(const void* p, const void* q) {
