@@ -419,30 +419,36 @@ void move() {
 	double mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
 	speed = multiple(mode, minus(go_for, me.pos));
 	
-	// edge
-	const double threshold = 500;
-	if (me.pos.x - me.radius < threshold && speed.x < 0) {
-		speed.x = 0;
-	}
-	if (me.pos.y - me.radius < threshold && speed.y < 0) {
-		speed.y = 0;
-	}
-	if (me.pos.z - me.radius < threshold && speed.z < 0) {
-		speed.z = 0;
-	}
-	if (kMapSize - me.pos.x - me.radius < threshold && speed.x > 0) {
-		speed.x = 0;
-	}
-	if (kMapSize - me.pos.y - me.radius < threshold && speed.y > 0) {
-		speed.y = 0;
-	}
-	if (kMapSize - me.pos.z - me.radius < threshold && speed.z > 0) {
-		speed.z = 0;
-	}
-	speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / length(speed), speed);
-
-	Move(me.id, speed);
+	//// edge
+	//const double threshold = 500;
+	//if (me.pos.x - me.radius < threshold && speed.x < 0) {
+	//	speed.x = 0;
+	//}
+	//if (me.pos.y - me.radius < threshold && speed.y < 0) {
+	//	speed.y = 0;
+	//}
+	//if (me.pos.z - me.radius < threshold && speed.z < 0) {
+	//	speed.z = 0;
+	//}
+	//if (kMapSize - me.pos.x - me.radius < threshold && speed.x > 0) {
+	//	speed.x = 0;
+	//}
+	//if (kMapSize - me.pos.y - me.radius < threshold && speed.y > 0) {
+	//	speed.y = 0;
+	//}
+	//if (kMapSize - me.pos.z - me.radius < threshold && speed.z > 0) {
+	//	speed.z = 0;
+	//}
+	//if (length(speed) == 0) {
+	//	printf("center\n");
+	//	mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos);
+	//	speed = multiple(mode, minus({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos));
+	//}
+	//else {
+	//	speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]), norm(speed));
+	//}
 	last_move = norm(speed);
+	Move(me.id, speed);
 }
 point mi_zhi_yin_qiu_yang(int n) {
 	if (n >= 2) {
@@ -473,6 +479,7 @@ int initial() {
 	me_radius = me.radius;
 	const Map *map = GetMap();
 	int i = (*map).objects_number - 1;
+	double r = 0.75;
 	for (; ~i; --i) {
 		switch ((*map).objects[i].type) {
 		case PLAYER:
@@ -481,25 +488,25 @@ int initial() {
 			code ^= OPPONENT;
 			break;
 		case ENERGY:
-			if ((*map).objects[i].pos.x - 0.75 * me_radius < 0) break;
-			if ((*map).objects[i].pos.y - 0.75 * me_radius < 0) break;
-			if ((*map).objects[i].pos.z - 0.75 * me_radius < 0) break;
-			if ((*map).objects[i].pos.x + 0.75 * me_radius > kMapSize) break;
-			if ((*map).objects[i].pos.y + 0.75 * me_radius > kMapSize) break;
-			if ((*map).objects[i].pos.z + 0.75 * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.x - r * me_radius < 0) break;
+			if ((*map).objects[i].pos.y - r * me_radius < 0) break;
+			if ((*map).objects[i].pos.z - r * me_radius < 0) break;
+			if ((*map).objects[i].pos.x + r * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.y + r * me_radius > kMapSize) break;
+			if ((*map).objects[i].pos.z + r * me_radius > kMapSize) break;
 			food[num_of_food].weight = ENERGY_VALUE;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
 			break;
 		case ADVANCED_ENERGY:
-			if (distance((*map).objects[i].pos, { 0, 0, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < 0.75 * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < 0.75 * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, 0, 0 }) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < r * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < r * me_radius) break;
 			food[num_of_food].weight = ad_weight;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
@@ -581,14 +588,14 @@ int opponent()
 	}
 	if (opponent_obj.radius > me.radius * 1.1) {
 		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
-		solution[OPPONENT].weight = 10000;
+		solution[OPPONENT].weight = 1e9;
 		if (distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
 			emergency = 1;
 		}
 	}
 	else if (opponent_obj.radius < me.radius * 0.8) {
 		solution[OPPONENT].pos = add(me.pos, minus(opponent_obj.pos, me.pos));
-		solution[OPPONENT].weight = 15;
+		solution[OPPONENT].weight = 5000;
 	}
 	return result;
 }
