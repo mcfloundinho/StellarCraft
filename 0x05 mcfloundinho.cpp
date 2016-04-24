@@ -13,6 +13,7 @@ enum value {
 	HIGHLY_ADVANCED_VALUE = (int)1e8,
 	MID_ADVANCED_VALUE = (int)1e7,
 	LOW_ADVANCED_VALUE = (int)1e6,
+	LOW_LOW_ADVANCED_VALUE = 5 * (int)1e5,
 	TRASH = 0,
 };
 enum situation {
@@ -184,6 +185,15 @@ int update() {
 		return 1;
 	}
 	else {
+		if (me.skill_level[VISION_UP] == 0) {
+			if (me.ability >= zw_cost(VISION_UP)) {
+				WAIT;
+				UpgradeSkill(me.id, VISION_UP);
+				GO;
+				return 1;
+			}
+			return 0;
+		}
 		if (me.skill_level[HEALTH_UP] < kMaxSkillLevel) {
 			if (me.ability >= zw_cost(HEALTH_UP)) {
 				WAIT;
@@ -241,28 +251,32 @@ int update() {
 			}
 			else {
 				ad_weight = LOW_ADVANCED_VALUE;//2st step of update finish
-				if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
-					if (me.ability >= zw_cost(LONG_ATTACK)) {
+				if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
+					if (me.ability >= zw_cost(VISION_UP)) {
 						WAIT;
-						UpgradeSkill(me.id, LONG_ATTACK);
+						UpgradeSkill(me.id, VISION_UP);
 						GO;
 						return 1;
 					}
 					else return 0;
 				}
 				else {
-					ad_weight = TRASH;
-					if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
-						if (me.ability >= zw_cost(VISION_UP)) {
+					ad_weight = LOW_LOW_ADVANCED_VALUE;
+					if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
+						if (me.ability >= zw_cost(LONG_ATTACK)) {
 							WAIT;
-							UpgradeSkill(me.id, VISION_UP);
+							UpgradeSkill(me.id, LONG_ATTACK);
 							GO;
 							return 1;
 						}
+						else {
+							return 0;
+						}
 					}
 					else {
-						return 0;
+						ad_weight = TRASH;
 					}
+
 				}
 			}
 			return 0;
@@ -513,7 +527,7 @@ int initial() {
 }
 int boss() {
 	if (boss_radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 2000;
+		solution[SEE_BOSS].weight = 100000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		return 0;
 	}
@@ -586,7 +600,7 @@ int opponent()
 	}
 	else if (opponent_obj.radius < me.radius * 0.8) {
 		solution[OPPONENT].pos = add(me.pos, minus(opponent_obj.pos, me.pos));
-		solution[OPPONENT].weight = 2000;
+		solution[OPPONENT].weight = 50000;
 	}
 	return result;
 }
