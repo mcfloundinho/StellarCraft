@@ -101,6 +101,12 @@ void AIMain() {
 		if (code&SEE_BOSS) {
 			boss();
 		}
+		else {
+			if (chasing_boss) {
+				printf("chasing canceled\n");
+			}
+			chasing_boss = false;
+		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (!emergency) {
 			greedy();
@@ -503,23 +509,23 @@ int initial() {
 			++num_of_food;
 			break;
 		case ADVANCED_ENERGY:
-			if (!chasing_boss) {
-				if (distance((*map).objects[i].pos, { 0, 0, 0 }) < ratio * me_radius) break;
-				if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < ratio * me_radius) break;
-				if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < ratio * me_radius) break;
-				if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < ratio * me_radius) break;
-				if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < ratio * me_radius) break;
-				if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < ratio * me_radius) break;
-				if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < ratio * me_radius) break;
-				if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < ratio * me_radius) break;
-				else {
-					food[num_of_food].weight = ad_weight;
-					food[num_of_food].pos = (*map).objects[i].pos;
-					++num_of_food;
-				}
-			}
+			if (distance((*map).objects[i].pos, { 0, 0, 0 }) < ratio * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < ratio * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < ratio * me_radius) break;
+			if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < ratio * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < ratio * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < ratio * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < ratio * me_radius) break;
+			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < ratio * me_radius) break;
 			else {
-				devour[num_of_devour++] = (*map).objects[i].pos;
+				if (!chasing_boss) {
+					food[num_of_food].weight = ad_weight;
+				}
+				else {
+					food[num_of_food].weight = TRASH;
+				}
+				food[num_of_food].pos = (*map).objects[i].pos;
+				++num_of_food;
 			}
 			break;
 		case SOURCE:
@@ -540,13 +546,16 @@ int initial() {
 }
 int boss() {
 	if (boss_obj.radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 1e4;
+		solution[SEE_BOSS].weight = 1e7;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		printf("chasing boss: %f, %f\n", boss_obj.radius, me_radius);
 		chasing_boss = true;
 		return 0;
 	}
 	else {
+		if (chasing_boss) {
+			printf("chasing canceled\n");
+		}
 		chasing_boss = false;
 		const double safe_distance = 500;
 		emergency = 0;
@@ -559,9 +568,10 @@ int boss() {
 		//	solution[SEE_BOSS].weight = 1e4;
 		//	solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 		}
-		int tmp = short_attack(boss_obj);
-		if (!~tmp) tmp = long_attack(boss_obj);
-		return (~tmp) ? 1 : 0;
+		//int tmp = short_attack(boss_obj);
+		//if (!~tmp) tmp = long_attack(boss_obj);
+		//return (~tmp) ? 1 : 0;
+		return 0;
 	}
 }
 int long_attack(const Object& target)
