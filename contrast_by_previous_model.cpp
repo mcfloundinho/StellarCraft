@@ -1,4 +1,4 @@
-﻿#include "teamstyle17.h"
+#include "teamstyle17.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -19,9 +19,9 @@ enum AR_BORDER {
 };
 enum value {
 	ENERGY_VALUE = 5,
-	HIGHLY_ADVANCED_VALUE= 100,
-	MID_ADVANCED_VALUE= 50,
-	LOW_ADVANCED_VALUE= 5,
+	HIGHLY_ADVANCED_VALUE= 1000,
+	MID_ADVANCED_VALUE= 500,
+	LOW_ADVANCED_VALUE= 50,
 	TRASH=0,
 	RUN_VALUE=-10,
 	CHASING_VALUE=30,
@@ -72,15 +72,15 @@ static int devour_warning;
 static double boss_r = (double)2000;
 static Vector speed;
 static Position last_pos;
-static int AE_Parameter;
+static int AE_Parameter=HIGHLY_ADVANCED_VALUE;
 
 void AIMain() {
-	/*if (GetStatus() -> team_id) 
+	if (GetStatus() -> team_id) 
 	{
 		Vector speed2={100,100,100};
 		Move(GetStatus()->objects[0].id,speed2);
 		return;
-	}*/
+	}
 	srand(time(0));
 	for(;;){
 		//if (abs(GetTime()-1000)<=5 || me.health>10000)
