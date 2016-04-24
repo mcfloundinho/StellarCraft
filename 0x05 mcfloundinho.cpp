@@ -527,7 +527,7 @@ int initial() {
 }
 int boss() {
 	if (boss_radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 100000;
+		solution[SEE_BOSS].weight = 1e7;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		return 0;
 	}
@@ -587,20 +587,30 @@ int opponent()
 	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
 		result = 1;
 	}
-	if (opponent_obj.radius > me.radius && me.skill_level[SHORT_ATTACK] == 0) {
+	/*if (opponent_obj.radius > me.radius && me.skill_level[SHORT_ATTACK] == 0) {
 		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
 		solution[OPPONENT].weight = 1e8;
-	}
-	if (opponent_obj.radius > me.radius * 1.1) {
+	}*/
+	if (opponent_obj.radius > me.radius / (kEatableRatio * 1.05)) {
 		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
-		solution[OPPONENT].weight = 1e9;
+		if (distance(opponent_obj.pos, me.pos) < kVision[0]) {
+			solution[OPPONENT].weight = 1e9;
+		}
+		else {
+			solution[OPPONENT].weight = 1e4;
+		}
 		if (distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
 			emergency = 1;
 		}
 	}
-	else if (opponent_obj.radius < me.radius * 0.8) {
-		solution[OPPONENT].pos = add(me.pos, minus(opponent_obj.pos, me.pos));
-		solution[OPPONENT].weight = 50000;
+	else if (opponent_obj.radius < me.radius * kEatableRatio 
+		&& distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
+		solution[OPPONENT].pos = opponent_obj.pos;
+		solution[OPPONENT].weight = 1e6;
 	}
+	//else {
+	//	solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+	//	solution[OPPONENT].weight = 1e4;
+	//}
 	return result;
 }
