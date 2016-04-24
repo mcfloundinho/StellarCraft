@@ -519,12 +519,13 @@ int initial() {
 			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < ratio * me_radius) break;
 			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < ratio * me_radius) break;
 			else {
-				if (!chasing_boss) {
-					food[num_of_food].weight = ad_weight;
-				}
-				else {
-					food[num_of_food].weight = TRASH;
-				}
+				//if (!chasing_boss) {
+				//	food[num_of_food].weight = ad_weight;
+				//}
+				//else {
+				//	food[num_of_food].weight = TRASH;
+				//}
+				food[num_of_food].weight = ad_weight;
 				food[num_of_food].pos = (*map).objects[i].pos;
 				++num_of_food;
 			}
