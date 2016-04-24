@@ -227,6 +227,7 @@ void Strategy()
 		}
 		else shield(me);
 	}
+	dash(me);
 	/*if (see_boss && dist(me.pos, boss.pos) - me.radius - boss_r < kShortAttackRange[me.skill_level[SHORT_ATTACK]])
 		short_attack(me);*///打boss
 	update();
