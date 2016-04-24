@@ -66,7 +66,7 @@ void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
 void avoid();//						avoid the devour and border		YQY
 int opponent();//					deal with the opponent			PLU		1cost
-int boss();//						smaller, kill; bigger, eat		ARC		1cost		
+int boss();//						smaller, kill; bigger, eat		ARC		1cost
 void anti_lock();
 void move();//						move to							PLU		1cost
 
@@ -91,14 +91,14 @@ int zw_devour(double d, Position speed);
 
 //lower level function
 Position add(Position a, Position b);//a+b
-Position minus(Position a, Position b);//a-bï¼Œä»BæŒ‡å‘Açš„å‘é‡
-Position multiple(double k, Position a);//kaï¼Œæ•°ä¹˜
-Position cross_product(Position a, Position b);//a*b å‰ä¹˜
+Position minus(Position a, Position b);//a-b£¬´ÓBÖ¸ÏòAµÄÏòÁ¿
+Position multiple(double k, Position a);//ka£¬Êı³Ë
+Position cross_product(Position a, Position b);//a*b ²æ³Ë
 double dot_product(Position a, Position b);//ab
-double length(Position a);//æ±‚çŸ¢é‡æ¨¡é•¿
-Position norm(Position a);//æ±‚å•ä½çŸ¢é‡
-double distance(Position a, Position b);//æ±‚ABä¸¤ç‚¹è·ç¦»
-void show(Position a);//è¾“å‡ºçŸ¢é‡
+double length(Position a);//ÇóÊ¸Á¿Ä£³¤
+Position norm(Position a);//Çóµ¥Î»Ê¸Á¿
+double distance(Position a, Position b);//ÇóABÁ½µã¾àÀë
+void show(Position a);//Êä³öÊ¸Á¿
 
 
 					  //Main
@@ -344,8 +344,8 @@ void avoid()
 	default_pos[5] = add(me.pos, a[5]);
 	int IsDevour(double d, Position des, Position speed);
 	Position Schmidt(Position a1, Position a2);
-	int flag;//è®°å½•æ˜¯å¦é€‰å–
-	int flag2;//è®°å½•æ˜¯å¦åœ¨ç¬ç§»åå‰è¿›æ–¹å‘æœ‰devour
+	int flag;//¼ÇÂ¼ÊÇ·ñÑ¡È¡
+	int flag2;//¼ÇÂ¼ÊÇ·ñÔÚË²ÒÆºóÇ°½ø·½ÏòÓĞdevour
 	int j, devour_count;
 	int devour_danger;
 	int i;
@@ -353,7 +353,7 @@ void avoid()
 	if (solution[2].weight>aim[0].weight)
 	{
 		go_for = solution[2].pos;
-		printf("é‡è§bossäº†ï¼ï¼å¥½æ€•æ€•ï¼ï¼\n");
+		printf("Óö¼ûbossÁË£¡£¡ºÃÅÂÅÂ£¡£¡\n");
 		return;
 	}
 	if (distance(aim[0].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
@@ -367,11 +367,11 @@ void avoid()
 		flag = 1;
 		for (j = 0;j<num_of_devour;j++)
 		{
-			if (distance(aim[i].pos, devour[j])<1 * me.radius)//å¦‚æœç›®æ ‡é™„è¿‘æœ‰åå™¬è€…
+			if (distance(aim[i].pos, devour[j])<1 * me.radius)//Èç¹ûÄ¿±ê¸½½üÓĞÍÌÊÉÕß
 				if (distance(aim[i].pos, me.pos)> 0.5*distance(devour[j], me.pos))
 					flag = 0;
 		}
-		if (flag == 0)//æ—è¾¹æœ‰devourï¼Œæ‰”æ‰
+		if (flag == 0)//ÅÔ±ßÓĞdevour£¬ÈÓµô
 		{
 			printf("throw it away!\n");
 			continue;
@@ -407,7 +407,7 @@ void avoid()
 					Position a2 = minus(aim_devour, me.pos);
 					/*if (IsBorder(1.1*me.radius,add(me.pos, speed)))
 					{
-					printf("è¾¹ç•Œå“¦ï¼\n");
+					printf("±ß½çÅ¶£¡\n");
 					speed=FBorder(1.1*me.radius,speed);
 					}*/
 					speed = Schmidt(speed, a2);
@@ -423,19 +423,19 @@ void avoid()
 	}
 	if (i == num_of_aim)
 	{
-		printf("ç¬ç§»äº†ï¼\n");
+		printf("Ë²ÒÆÁË£¡\n");
 		flag2 = 0;
 		for (j = 0;j<num_of_devour;j++)
 		{
 			if (IsDevour(1.5*me.radius, devour[j], me.speed))
 				flag2 = 1;
 		}
-		if (!flag2)//å¦‚æœæ²¡æœ‰é—®é¢˜
+		if (!flag2)//Èç¹ûÃ»ÓĞÎÊÌâ
 		{
 			go_for = add(me.pos, me.speed);
 			return;
 		}
-		else//æœ‰é—®é¢˜ï¼Œéšæœºä¸€ä¸ªæ²¡æœ‰devourçš„æ–¹å‘
+		else//ÓĞÎÊÌâ£¬Ëæ»úÒ»¸öÃ»ÓĞdevourµÄ·½Ïò
 		{
 			for (i = 0;i<6;i++)
 			{
@@ -456,7 +456,7 @@ Position Schmidt(Position a1, Position a2)
 	temp1 = minus(a1, temp2);
 	return temp1;
 }
-int IsDevour(double d, Position des, Position speed)//åˆ¤æ–­ä¸‹ä¸€æ—¶åˆ»ä¼šä¸ä¼šç¢°åˆ°åå™¬è€…
+int IsDevour(double d, Position des, Position speed)//ÅĞ¶ÏÏÂÒ»Ê±¿Ì»á²»»áÅöµ½ÍÌÊÉÕß
 {
 	int flag = 0;
 	Position Next;
@@ -560,26 +560,26 @@ int initial() {
 }
 int boss() {
 	emergency = code = 0;
-	if (boss_radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 1e9;
+	if (boss_obj.radius < me_radius * kEatableRatio) {
+		solution[SEE_BOSS].weight = 10000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		return code;
 	}
-	if (me_radius < boss_radius * kEatableRatio * 1.05) emergency = 1;
 	int tmp = short_attack(boss_obj);
 	if (!~tmp) tmp = long_attack(boss_obj);
 	if (~tmp) code = 1;
-	if (emergency) {
-		solution[SEE_BOSS].weight = 1e9;
-		solution[SEE_BOSS].pos = add(me.pos, multiple(1e3, norm(minus(me.pos, boss_obj.pos))));
+	if (me_radius < boss_obj.radius * kEatableRatio * 1.1){
+		if (distance(me.pos, boss_obj.pos) < 3 * me_radius) emergency = 1;
+		solution[SEE_BOSS].weight = emergency ? 10000 : 20;
+		solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 	}
 	else {
 		solution[SEE_BOSS].weight = 1;
 		solution[SEE_BOSS].pos = me.pos;
 	}
-	if (boss_radius < me_radius * kEatableRatio) {
+	if (boss_obj.radius < me_radius * kEatableRatio) {
 		emergency = 0;
-		solution[SEE_BOSS].weight = 1e9;
+		solution[SEE_BOSS].weight = 10000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 	}
 	return code;
@@ -706,7 +706,7 @@ MOVE:
 		update();
 	}
 }
-int zw_IsDevour(double d, Position des, Position speed)//åˆ¤æ–­ä¸‹ä¸€æ—¶åˆ»ä¼šä¸ä¼šç¢°åˆ°åå™¬è€…
+int zw_IsDevour(double d, Position des, Position speed)//ÅĞ¶ÏÏÂÒ»Ê±¿Ì»á²»»áÅöµ½ÍÌÊÉÕß
 {
 	int flag = 0;
 	Position Next;
@@ -726,3 +726,4 @@ int zw_devour(double d, Position speed) {
 	}
 	return result;
 }
+
