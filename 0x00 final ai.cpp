@@ -1,4 +1,4 @@
-﻿#include "teamstyle17.h"
+#include "teamstyle17.h"
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
@@ -83,9 +83,11 @@ int long_attack(const Object& target);
 int short_attack(const Object& target);
 void zw_enshaw();
 int IsDevour(double d, Position des, Position speed);
+int zw_IsDevour(double d, Position des, Position speed);
 Position MaximumSpeed(Position vec);
 point mi_zhi_yin_qiu_yang(int n);
 Position Schmidt(Position a1, Position a2);
+int zw_devour(double d, Position speed);
 
 //lower level function
 Position add(Position a, Position b);//a+b
@@ -109,22 +111,22 @@ void AIMain() {
 			anti_block_position = GetStatus()->objects[0].pos;
 			anti_block_time = 0;
 		}
-		if (GetTime() / 50 != anti_block_time) {
+		if ((GetTime()>>6) != anti_block_time) {
 			if (distance(anti_block_position, GetStatus()->objects[0].pos)<1000) {
 				goto ANTI_LOCK;
 			}
-			anti_block_time = GetTime() / 50;
+			anti_block_time = (GetTime() >> 6);
 			anti_block_position = GetStatus()->objects[0].pos;
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		update();
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&OPPONENT) {
-			opponent();
+			//opponent();
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&SEE_BOSS) {
-			boss();
+			//boss();
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (!emergency) {
@@ -211,7 +213,7 @@ int zw_cost(int skill) {
 	}
 }
 int update() {
-	if (me.skill_cd[SHIELD] == 0 && me.short_attack_casting == -1 && me.long_attack_casting == -1) {
+	if (me.skill_cd[SHIELD] == 0 /*&& me.short_attack_casting == -1 */&& me.long_attack_casting == -1) {
 		WAIT;
 		Shield(me.id);
 		GO;
@@ -456,7 +458,6 @@ Position Schmidt(Position a1, Position a2)
 }
 int IsDevour(double d, Position des, Position speed)//判断下一时刻会不会碰到吞噬者
 {
-	Position MaximumSpeed(Position vec);
 	int flag = 0;
 	Position Next;
 	for (int i = 1;i <= 8;i++)
@@ -588,7 +589,7 @@ int long_attack(const Object& target)
 	if (me.skill_cd[LONG_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
@@ -608,7 +609,7 @@ int short_attack(const Object& target)
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
@@ -648,4 +649,80 @@ int opponent()
 }
 void anti_lock() {
 	//find a position without a devour
+	Position speed;
+	if (!(me.pos.x > (kMapSize - 2*me.radius))) {
+		speed = { 100,0,0 };
+		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
+	}
+	if (!(me.pos.x<2*me.radius)) {
+		speed = { -100,0,0 };
+		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
+	}
+	if (!(me.pos.y > (kMapSize - 2*me.radius))) {
+		speed = { 0,100,0 };
+		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
+	}
+	if (!(me.pos.y<2*me.radius)) {
+		speed = { 0,-100,0 };
+		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
+	}
+	if (!(me.pos.z > (kMapSize - 2*me.radius))) {
+		speed = { 0,0,100 };
+		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
+	}
+	if (!(me.pos.z<2*me.radius)) {
+		speed = { 0,0,-100 };
+		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
+	}
+	//sorry
+	if (!(me.pos.x > (kMapSize - 2 * me.radius))) {
+		speed = { 100,0,0 };
+		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
+	}
+	if (!(me.pos.x<2 * me.radius)) {
+		speed = { -100,0,0 };
+		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
+	}
+	if (!(me.pos.y > (kMapSize - 2 * me.radius))) {
+		speed = { 0,100,0 };
+		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
+	}
+	if (!(me.pos.y<2 * me.radius)) {
+		speed = { 0,-100,0 };
+		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
+	}
+	if (!(me.pos.z > (kMapSize - 2 * me.radius))) {
+		speed = { 0,0,100 };
+		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
+	}
+	if (!(me.pos.z<2 * me.radius)) {
+		speed = { 0,0,-100 };
+		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
+	}
+MOVE:
+	Move(me.id, speed);
+	int t = GetTime();
+	while ((GetTime() - t) < 20) {
+		update();
+	}
+}
+int zw_IsDevour(double d, Position des, Position speed)//判断下一时刻会不会碰到吞噬者
+{
+	int flag = 0;
+	Position Next;
+	for (int i = 1;i <= 25;i++)
+	{
+		Next = add(me.pos, multiple(i, MaximumSpeed(speed)));
+		if (distance(Next, des) < d)
+			flag = 1;
+	}
+	return flag;
+}
+int zw_devour(double d, Position speed) {
+	int result = 0;
+	int temp = num_of_devour - 1;
+	for (temp;~temp;--temp) {
+		if (zw_IsDevour(d, devour[temp], speed)) result++;
+	}
+	return result;
 }
