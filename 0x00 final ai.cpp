@@ -1,4 +1,4 @@
-#include "teamstyle17.h"
+﻿#include "teamstyle17.h"
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
@@ -15,10 +15,10 @@ enum value {
 	//the value of enshaw is 500~2000
 	//the value of food is lower than 1e6
 	ENERGY_VALUE = 1000000,
-	HIGHLY_ADVANCED_VALUE= 1000000,
-	MID_ADVANCED_VALUE= 10000000,
-	LOW_ADVANCED_VALUE= 1000000,
-	TRASH=0,
+	HIGHLY_ADVANCED_VALUE = 1000000,
+	MID_ADVANCED_VALUE = 10000000,
+	LOW_ADVANCED_VALUE = 1000000,
+	TRASH = 0,
 
 };
 enum situation {
@@ -60,7 +60,7 @@ Position anti_block_position;
 int operate_time;//					after any action				before any action
 
 
-//core function						usage							author	time cost
+				 //core function						usage							author	time cost
 int initial();//					initial,update the basic value	ARC
 void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
@@ -71,7 +71,7 @@ void anti_lock();
 void move();//						move to							PLU		1cost
 
 
-//auxiliary variables
+			//auxiliary variables
 int en_weight = 20;
 char bitmap[(MAX_SIZE >> 3) + 1];
 
@@ -99,7 +99,7 @@ double distance(Position a, Position b);//求AB两点距离
 void show(Position a);//输出矢量
 
 
-//Main
+					  //Main
 void AIMain() {
 	if (GetStatus()->team_id == 1)return;
 	for (;;) {
@@ -110,7 +110,7 @@ void AIMain() {
 			anti_block_time = 0;
 		}
 		if (GetTime() / 50 != anti_block_time) {
-			if (distance(anti_block_position, GetStatus()->objects[0].pos)) {
+			if (distance(anti_block_position, GetStatus()->objects[0].pos)<1000) {
 				goto ANTI_LOCK;
 			}
 			anti_block_time = GetTime() / 50;
@@ -134,12 +134,12 @@ void AIMain() {
 		AVOID:
 			initial();
 		}
+		avoid();
+		move();
 		if (false) {
 		ANTI_LOCK:
 			anti_lock();
 		}
-		avoid();
-		move();
 	}
 }
 
@@ -211,7 +211,7 @@ int zw_cost(int skill) {
 	}
 }
 int update() {
-	if (me.skill_cd[SHIELD] == 0 /*&& me.short_attack_casting == -1*/ && me.long_attack_casting == -1) {
+	if (me.skill_cd[SHIELD] == 0 && me.short_attack_casting == -1 && me.long_attack_casting == -1) {
 		WAIT;
 		Shield(me.id);
 		GO;
@@ -333,7 +333,7 @@ void avoid()
 {
 	me = GetStatus()->objects[0];
 	Position default_pos[6];
-	const Position a[6]={{ 1000,0,0 },{ -1000,0,0 },{ 0,1000,0 },{ 0,-1000,0 },{ 0,0,1000 },{ 0,0,-1000 }};
+	const Position a[6] = { { 1000,0,0 },{ -1000,0,0 },{ 0,1000,0 },{ 0,-1000,0 },{ 0,0,1000 },{ 0,0,-1000 } };
 	default_pos[0] = add(me.pos, a[0]);
 	default_pos[1] = add(me.pos, a[1]);
 	default_pos[2] = add(me.pos, a[2]);
@@ -350,15 +350,15 @@ void avoid()
 	Position aim_devour;
 	if (solution[2].weight>aim[0].weight)
 	{
-		go_for=solution[2].pos;
+		go_for = solution[2].pos;
 		printf("遇见boss了！！好怕怕！！\n");
 		return;
 	}
-	if (distance(aim[0].pos,me.pos)/kMaxMoveSpeed<=me.shield_time && me.skill_level[SHIELD]==5)
+	if (distance(aim[0].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
 	{
-		go_for=aim[0].pos;
+		go_for = aim[0].pos;
 		printf("hahaha\n");
-		return ;
+		return;
 	}
 	for (i = 0;i<num_of_aim;i++)
 	{
@@ -378,14 +378,14 @@ void avoid()
 		{
 			Position speed = minus(aim[i].pos, me.pos);
 			devour_count = 0;
-			if (distance(aim[i].pos,me.pos)/kMaxMoveSpeed<=me.shield_time && me.skill_level[SHIELD]==5)
+			if (distance(aim[i].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
 			{
-				devour_danger=0;
+				devour_danger = 0;
 				printf("hahaha\n");
 			}
 			else
-				devour_danger=1;
-			if(devour_danger)
+				devour_danger = 1;
+			if (devour_danger)
 			{
 				for (j = 0;j<num_of_devour;j++)
 				{
@@ -405,10 +405,10 @@ void avoid()
 					Position a2 = minus(aim_devour, me.pos);
 					/*if (IsBorder(1.1*me.radius,add(me.pos, speed)))
 					{
-						printf("边界哦！\n");
-						speed=FBorder(1.1*me.radius,speed);
+					printf("边界哦！\n");
+					speed=FBorder(1.1*me.radius,speed);
 					}*/
-					speed=Schmidt(speed, a2);
+					speed = Schmidt(speed, a2);
 					go_for = add(me.pos, speed);
 					return;
 				}
@@ -419,28 +419,28 @@ void avoid()
 				}
 		}
 	}
-	if (i == num_of_aim) 
+	if (i == num_of_aim)
 	{
 		printf("瞬移了！\n");
-		flag2=0;
-		for(j=0;j<num_of_devour;j++)
+		flag2 = 0;
+		for (j = 0;j<num_of_devour;j++)
 		{
 			if (IsDevour(1.5*me.radius, devour[j], me.speed))
-				flag2=1;
+				flag2 = 1;
 		}
 		if (!flag2)//如果没有问题
 		{
-			go_for=add(me.pos,me.speed);
+			go_for = add(me.pos, me.speed);
 			return;
 		}
 		else//有问题，随机一个没有devour的方向
 		{
-			for(i=0;i<6;i++)
+			for (i = 0;i<6;i++)
 			{
-				for(j=0;j<num_of_devour;j++)
+				for (j = 0;j<num_of_devour;j++)
 					if (!IsDevour(1.5*me.radius, devour[j], a[i]))
 					{
-						go_for=default_pos[i];
+						go_for = default_pos[i];
 						return;
 					}
 			}
@@ -476,7 +476,7 @@ Position MaximumSpeed(Position vec) {
 }
 void move() {
 	Position speed;
-	double mode = (10+kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
+	double mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
 	speed = multiple(mode, minus(go_for, me.pos));
 	Move(me.id, speed);
 	last_move = norm(speed);
@@ -490,7 +490,7 @@ point mi_zhi_yin_qiu_yang(int n) {
 	}
 }
 void zw_enshaw() {
-	double len = 2*me.radius;
+	double len = 2 * me.radius;
 	double div = 3.5e-7;//?
 	num_of_aim = 1;
 	Position force = { 0.0,0.0,0.0 };
@@ -510,8 +510,8 @@ int initial() {
 	me_radius = me.radius;
 	const Map *map = GetMap();
 	int i = (*map).objects_number - 1;
-	double r=1.1;
-	Position a[8]={{ 0, 0, 0 }, { 0, 0, kMapSize },{ 0, kMapSize, 0 },{ 0, kMapSize, kMapSize },{ kMapSize, 0, 0 },{ kMapSize, 0, kMapSize },{ kMapSize, kMapSize, 0 },{ kMapSize, kMapSize, kMapSize }};
+	double r = 1.1;
+	Position a[8] = { { 0, 0, 0 },{ 0, 0, kMapSize },{ 0, kMapSize, 0 },{ 0, kMapSize, kMapSize },{ kMapSize, 0, 0 },{ kMapSize, 0, kMapSize },{ kMapSize, kMapSize, 0 },{ kMapSize, kMapSize, kMapSize } };
 	for (; ~i; --i) {
 		switch ((*map).objects[i].type) {
 		case PLAYER:
@@ -542,17 +542,17 @@ int initial() {
 			food[num_of_food].weight = ad_weight;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
-			break;		
+			break;
 		case SOURCE: break;
-			case DEVOUR:
-				devour[num_of_devour] = (*map).objects[i].pos;
-				++num_of_devour;
-				break;
-			case BOSS:
-				boss_obj = (*map).objects[i];
-				code ^= SEE_BOSS;
-				break;
-			default: break;
+		case DEVOUR:
+			devour[num_of_devour] = (*map).objects[i].pos;
+			++num_of_devour;
+			break;
+		case BOSS:
+			boss_obj = (*map).objects[i];
+			code ^= SEE_BOSS;
+			break;
+		default: break;
 		}
 	}
 	return code;
@@ -568,11 +568,11 @@ int boss() {
 	int tmp = short_attack(boss_obj);
 	if (!~tmp) tmp = long_attack(boss_obj);
 	if (~tmp) code = 1;
-	if (emergency){
+	if (emergency) {
 		solution[SEE_BOSS].weight = 1e9;
 		solution[SEE_BOSS].pos = add(me.pos, multiple(1e3, norm(minus(me.pos, boss_obj.pos))));
 	}
-	else{
+	else {
 		solution[SEE_BOSS].weight = 1;
 		solution[SEE_BOSS].pos = me.pos;
 	}
@@ -588,7 +588,7 @@ int long_attack(const Object& target)
 	if (me.skill_cd[LONG_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
@@ -608,7 +608,7 @@ int short_attack(const Object& target)
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
@@ -627,7 +627,7 @@ int opponent()
 {
 	const double safe_distance = 1000;
 	int result = 0;
-	Position temp={ kMapSize / 2, kMapSize / 2, kMapSize / 2 };
+	Position temp = { kMapSize / 2, kMapSize / 2, kMapSize / 2 };
 	solution[OPPONENT].pos = temp;
 	solution[OPPONENT].weight = 0;
 	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
