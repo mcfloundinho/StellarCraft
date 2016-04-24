@@ -9,7 +9,6 @@
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
 enum value {
-	LOW_ENERGY_VALUE = (int)1e0,
 	ENERGY_VALUE = (int)1e6,
 	HIGHLY_ADVANCED_VALUE = (int)1e8,
 	MID_ADVANCED_VALUE = (int)1e7,
@@ -96,18 +95,13 @@ void AIMain() {
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (!emergency) {
-			if (me.skill_level[SHIELD] == kMaxSkillLevel) {
-				greedy();
-			}
-			else {
-				aim[0] = food[0];
-			}
+			greedy();
 		}
 		if (false) {
 		AVOID:
 			initial();
 		}
-		if (me.health < 0.5 * me.max_health && (me.skill_level[SHIELD] == kMaxSkillLevel && me.shield_time < 10)) {
+		if (me.skill_level[SHIELD] < kMaxSkillLevel || me.shield_time < 10) {
 			avoid();
 		}
 		else {
@@ -406,7 +400,7 @@ void move() {
 	double mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
 	speed = multiple(mode, minus(go_for, me.pos));
 	// edge
-	if (me.radius > 8000) {
+	//if (me.radius > 8000) {
 		const double threshold = 500;
 		if (me.pos.x - me.radius < threshold && speed.x < 0) {
 			speed.x = 0;
@@ -434,7 +428,7 @@ void move() {
 		else {
 			speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]), norm(speed));
 		}
-	}
+	//}
 	Move(me.id, speed);
 	last_move = norm(speed);
 }
@@ -482,24 +476,9 @@ int initial() {
 			if ((*map).objects[i].pos.x + ratio * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.y + ratio * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.z + ratio * me_radius > kMapSize) break;
-			if (me.skill_level[SHIELD] < kMaxSkillLevel) {
-				if (num_of_food == 0) {
-					food[0].weight = LOW_ENERGY_VALUE;
-					food[0].pos = (*map).objects[i].pos;
-					num_of_food = 1;
-				}
-				else {
-					if (food[0].weight == LOW_ENERGY_VALUE &&
-						distance(me.pos, (*map).objects[i].pos) < distance(me.pos, food[0].pos)) {
-						food[0].pos = (*map).objects[i].pos;
-					}
-				}
-			}
-			else {
-				food[num_of_food].weight =  ENERGY_VALUE;
-				food[num_of_food].pos = (*map).objects[i].pos;
-				++num_of_food;
-			}
+			food[num_of_food].weight =  ENERGY_VALUE;
+			food[num_of_food].pos = (*map).objects[i].pos;
+			++num_of_food;
 			break;
 		case ADVANCED_ENERGY:
 			if (distance((*map).objects[i].pos, { 0, 0, 0 }) < ratio * me_radius) break;
@@ -510,21 +489,6 @@ int initial() {
 			if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < ratio * me_radius) break;
 			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < ratio * me_radius) break;
 			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < ratio * me_radius) break;
-			if (me.skill_level[SHIELD] < kMaxSkillLevel) {
-				if (num_of_food == 0) {
-					food[0].weight = LOW_ADVANCED_VALUE;
-					food[0].pos = (*map).objects[i].pos;
-					num_of_food = 1;
-				}
-				else {
-					if (food[0].weight == LOW_ENERGY_VALUE ||
-						distance(me.pos, (*map).objects[i].pos) < distance(me.pos, food[0].pos)) {
-						food[0].weight = LOW_ADVANCED_VALUE;
-						food[0].pos = (*map).objects[i].pos;
-					}
-				}
-
-			}
 			else {
 				food[num_of_food].weight = ad_weight;
 				food[num_of_food].pos = (*map).objects[i].pos;
