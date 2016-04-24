@@ -565,8 +565,8 @@ int boss() {
 		}
 		if (emergency) {
 			printf("boss emergency\n");
-		//	solution[SEE_BOSS].weight = 1e4;
-		//	solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
+			solution[SEE_BOSS].weight = 1e6;
+			solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 		}
 		//int tmp = short_attack(boss_obj);
 		//if (!~tmp) tmp = long_attack(boss_obj);
