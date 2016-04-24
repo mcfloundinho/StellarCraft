@@ -702,7 +702,7 @@ void anti_lock() {
 MOVE:
 	Move(me.id, speed);
 	int t = GetTime();
-	while ((GetTime() - t) < 20) {
+	while ((GetTime() - t) < 50) {
 		update();
 	}
 }
@@ -710,7 +710,7 @@ int zw_IsDevour(double d, Position des, Position speed)//判断下一时刻会�
 {
 	int flag = 0;
 	Position Next;
-	for (int i = 1;i <= 25;i++)
+	for (int i = 1;i <= 60;i++)
 	{
 		Next = add(me.pos, multiple(i, MaximumSpeed(speed)));
 		if (distance(Next, des) < d)
