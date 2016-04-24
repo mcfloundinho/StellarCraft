@@ -29,8 +29,9 @@ struct ball {
 	Position center;
 	double radius;
 };
-double opponent_radius;//			initial()						opponent()
-double boss_radius;//				initial()						greedy()
+
+//double opponent_radius;//			initial()						opponent()
+//double boss_radius;//				initial()						greedy()
 Position boss_pos;//				initial()						action()
 Position opponent_pos;//			initial()						opponent()
 PlayerObject me;//					initial()						almost everywhere
@@ -51,7 +52,9 @@ point solution[NUM_OF_SOLUTION];//	opponent(),boss()				avoid()
 Position go_for;//					avoid()							move()
 Position last_move;//				move()							move()
 int operate_time;//					after any action				before any action
-				 //core function						usage							author	time cost
+bool chasing_boss = false;
+
+//core function						usage							author	time cost
 int initial();//					initial,update the basic value	ARC
 void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
@@ -59,15 +62,18 @@ void avoid();//						avoid the devour and border		YQY
 int opponent();//					deal with the opponent			PLU		1cost
 int boss();//						smaller, kill; bigger, eat		ARC		1cost		
 void move();//						move to							PLU		1cost
-			//auxiliary variables
+
+//auxiliary variables
 int en_weight = 20;
 char bitmap[(MAX_SIZE >> 3) + 1];
+
 //auxiliary function
 int zw_cost(int skill);
 int zw_cmp(const void*, const void*);
 int long_attack(const Object& target);
 int short_attack(const Object& target);
 void zw_enshaw();
+
 //lower level function
 Position add(Position a, Position b);//a+b
 Position minus(Position a, Position b);//a-b，从B指向A的向量
@@ -78,7 +84,8 @@ double length(Position a);//求矢量模长
 Position norm(Position a);//求单位矢量
 double distance(Position a, Position b);//求AB两点距离
 void show(Position a);//输出矢量 
-					  //Main
+
+//Main
 void AIMain() {
 	if (GetStatus()->team_id == 1)return;
 	for (;;) {
@@ -496,7 +503,7 @@ int initial() {
 			++num_of_food;
 			break;
 		case ADVANCED_ENERGY:
-			if (ad_weight != TRASH) {
+			if (!chasing_boss) {
 				if (distance((*map).objects[i].pos, { 0, 0, 0 }) < ratio * me_radius) break;
 				if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < ratio * me_radius) break;
 				if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < ratio * me_radius) break;
@@ -532,16 +539,25 @@ int initial() {
 	return code;
 }
 int boss() {
-	if (boss_radius < me_radius * kEatableRatio) {
+	if (boss_obj.radius < me_radius * kEatableRatio) {
 		solution[SEE_BOSS].weight = 1e4;
 		solution[SEE_BOSS].pos = boss_obj.pos;
+		printf("chasing boss: %f, %f\n", boss_obj.radius, me_radius);
+		chasing_boss = true;
 		return 0;
 	}
 	else {
-		emergency = me_radius < boss_radius * kEatableRatio ? 1 : 0;
+		chasing_boss = false;
+		const double safe_distance = 500;
+		emergency = 0;
+		if (me_radius < boss_obj.radius * kEatableRatio &&
+			distance(boss_obj.pos, me.pos) - boss_obj.radius < safe_distance) {
+			emergency = 1;
+		}
 		if (emergency) {
-			solution[SEE_BOSS].weight = 1e4;
-			solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
+			printf("boss emergency\n");
+		//	solution[SEE_BOSS].weight = 1e4;
+		//	solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 		}
 		int tmp = short_attack(boss_obj);
 		if (!~tmp) tmp = long_attack(boss_obj);
