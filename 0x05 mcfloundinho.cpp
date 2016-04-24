@@ -251,21 +251,22 @@ int update() {
 			}
 			else {
 				ad_weight = LOW_ADVANCED_VALUE;//2st step of update finish
-				if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
-					if (me.ability >= zw_cost(VISION_UP)) {
+				if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
+					if (me.ability >= zw_cost(LONG_ATTACK)) {
 						WAIT;
-						UpgradeSkill(me.id, VISION_UP);
+						UpgradeSkill(me.id, LONG_ATTACK);
 						GO;
 						return 1;
 					}
 					else return 0;
 				}
 				else {
-					ad_weight = LOW_LOW_ADVANCED_VALUE;
-					if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
-						if (me.ability >= zw_cost(LONG_ATTACK)) {
+					//ad_weight = LOW_LOW_ADVANCED_VALUE;
+					ad_weight = LOW_ADVANCED_VALUE;
+					if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
+						if (me.ability >= zw_cost(VISION_UP)) {
 							WAIT;
-							UpgradeSkill(me.id, LONG_ATTACK);
+							UpgradeSkill(me.id, VISION_UP);
 							GO;
 							return 1;
 						}
@@ -495,18 +496,23 @@ int initial() {
 			++num_of_food;
 			break;
 		case ADVANCED_ENERGY:
-			if (distance((*map).objects[i].pos, { 0, 0, 0 }) < ratio * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < ratio * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < ratio * me_radius) break;
-			if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < ratio * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < ratio * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < ratio * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < ratio * me_radius) break;
-			if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < ratio * me_radius) break;
+			if (ad_weight != TRASH) {
+				if (distance((*map).objects[i].pos, { 0, 0, 0 }) < ratio * me_radius) break;
+				if (distance((*map).objects[i].pos, { 0, 0, kMapSize }) < ratio * me_radius) break;
+				if (distance((*map).objects[i].pos, { 0, kMapSize, 0 }) < ratio * me_radius) break;
+				if (distance((*map).objects[i].pos, { 0, kMapSize, kMapSize }) < ratio * me_radius) break;
+				if (distance((*map).objects[i].pos, { kMapSize, 0, 0 }) < ratio * me_radius) break;
+				if (distance((*map).objects[i].pos, { kMapSize, 0, kMapSize }) < ratio * me_radius) break;
+				if (distance((*map).objects[i].pos, { kMapSize, kMapSize, 0 }) < ratio * me_radius) break;
+				if (distance((*map).objects[i].pos, { kMapSize, kMapSize, kMapSize }) < ratio * me_radius) break;
+				else {
+					food[num_of_food].weight = ad_weight;
+					food[num_of_food].pos = (*map).objects[i].pos;
+					++num_of_food;
+				}
+			}
 			else {
-				food[num_of_food].weight = ad_weight;
-				food[num_of_food].pos = (*map).objects[i].pos;
-				++num_of_food;
+				devour[num_of_devour++] = (*map).objects[i].pos;
 			}
 			break;
 		case SOURCE:
@@ -527,9 +533,9 @@ int initial() {
 }
 int boss() {
 	if (boss_radius < me_radius * kEatableRatio) {
-		//solution[SEE_BOSS].weight = 1e6;
-		//solution[SEE_BOSS].pos = boss_obj.pos;
-		//return 0;
+		solution[SEE_BOSS].weight = 1e4;
+		solution[SEE_BOSS].pos = boss_obj.pos;
+		return 0;
 	}
 	else {
 		emergency = me_radius < boss_radius * kEatableRatio ? 1 : 0;
