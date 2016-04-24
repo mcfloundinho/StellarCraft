@@ -415,7 +415,7 @@ void move() {
 	speed = multiple(mode, minus(go_for, me.pos));
 	// edge
 	//if (me.radius > 8000) {
-		const double threshold = 500;
+		const double threshold = 0.05 * me.radius;
 		if (me.pos.x - me.radius < threshold && speed.x < 0) {
 			speed.x = 0;
 		}
@@ -474,7 +474,7 @@ int initial() {
 	emergency = code = 0;
 	me_radius = me.radius;
 	const Map *map = GetMap();
-	const double ratio = 0.8;
+	const double ratio = 1.1;
 	int i = (*map).objects_number - 1;
 	for (; ~i; --i) {
 		switch ((*map).objects[i].type) {
