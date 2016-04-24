@@ -72,6 +72,7 @@ int zw_cost(int skill);
 int zw_cmp(const void*, const void*);
 int long_attack(const Object& target);
 int short_attack(const Object& target);
+int dash();
 void zw_enshaw();
 
 //lower level function
@@ -576,6 +577,7 @@ int boss() {
 }
 int long_attack(const Object& target)
 {
+	dash();
 	if (me.skill_cd[LONG_ATTACK] == -1) {
 		return -1;
 	}
@@ -594,8 +596,10 @@ int long_attack(const Object& target)
 	GO;
 	return 0;
 }
+
 int short_attack(const Object& target)
 {
+	dash();
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
 		return -1;
 	}
@@ -614,6 +618,24 @@ int short_attack(const Object& target)
 	GO;
 	return 0;
 }
+
+int dash()
+{
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+		return -1;
+	}
+	if (!me.skill_level[DASH]) {
+		return -1;
+	}
+	if (me.skill_cd[DASH] == -1) {
+		return -1;
+	}
+	WAIT;
+	Dash(me.id);
+	GO;
+	return 0;
+}
+
 int opponent()
 {
 	const double safe_distance = 1000;
