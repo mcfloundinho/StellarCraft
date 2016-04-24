@@ -527,12 +527,16 @@ int initial() {
 }
 int boss() {
 	if (boss_radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 1e7;
-		solution[SEE_BOSS].pos = boss_obj.pos;
-		return 0;
+		//solution[SEE_BOSS].weight = 1e6;
+		//solution[SEE_BOSS].pos = boss_obj.pos;
+		//return 0;
 	}
 	else {
 		emergency = me_radius < boss_radius * kEatableRatio ? 1 : 0;
+		if (emergency) {
+			solution[SEE_BOSS].weight = 1e4;
+			solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
+		}
 		int tmp = short_attack(boss_obj);
 		if (!~tmp) tmp = long_attack(boss_obj);
 		return (~tmp) ? 1 : 0;
