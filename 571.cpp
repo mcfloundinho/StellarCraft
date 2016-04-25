@@ -1,4 +1,4 @@
-﻿#include "teamstyle17.h"
+#include "teamstyle17.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -76,12 +76,12 @@ static Position last_pos;
 static int AE_Parameter=HIGHLY_ADVANCED_VALUE;
 
 void AIMain() {
-	/*if (GetStatus() -> team_id) 
+	if (GetStatus() -> team_id) 
 	{
-		Vector speed2={100,100,100};
-		Move(GetStatus()->objects[0].id,speed2);
+		/*Vector speed2={100,100,100};
+		Move(GetStatus()->objects[0].id,speed2);*/
 		return;
-	}*/
+	}
 	srand(time(0));
 	for(;;){
 		//if (abs(GetTime()-1000)<=5 || me.health>10000)
@@ -96,14 +96,17 @@ void AIMain() {
 void Init(){
 	map = GetMap();
 	current_time = map -> time;
-	register int i;
+	register int i,j;
 	register int AE_number;
 	int AEflag;//记录有无AE可以走
+	int flag;//记录ae是否离devour太近
 	register int ChosenAE;
+	Position ChosenDevour[10];
 	register double MinAEdistance;
 	Position AE[50];//记录AE的位置
 	register int devour_number;
-	Position Devour[20];//记录Devour的位置
+	int coming_devour=0;
+	Position Devour[50];//记录Devour的位置
 	int Boss_Parameter=20;
 	int Devour_Danger=0;
 	register double border_r;
@@ -113,7 +116,7 @@ void Init(){
 
 	border_r=0.5*me.radius;
 	me = GetStatus() -> objects[0];
-	opponent_number = devour_number = see_boss = AE_number = 0;
+	opponent_number = devour_number = see_boss = AE_number = coming_devour=0;
 	speed.x = speed.y = speed.z = (double)0;
 	MinAEdistance=10000;
 
@@ -122,13 +125,13 @@ void Init(){
 		F= (double)0, dis = dist(map -> objects[i].pos, me.pos);
 		switch (map -> objects[i].type){
 			case PLAYER:
-				if (map -> objects[i].team_id == GetStatus() -> team_id) break;
+				/*if (map -> objects[i].team_id == GetStatus() -> team_id) break;
 				opponent[opponent_number++] = map -> objects[i];
 				if (me.radius < map -> objects[i].radius) 
 					F = RUN_VALUE * me.radius * map -> objects[i].radius / POW(dis, 3);
 				if (me.radius > map -> objects[i].radius && me.skill_level[SHORT_ATTACK]
 					|| me.skill_level[SHORT_ATTACK]>=5) 
-						F = CHASING_VALUE * me.radius * map -> objects[i].radius / POW(dis, 3);
+						F = CHASING_VALUE * me.radius * map -> objects[i].radius / POW(dis, 3);*/
 				break;
 			case ENERGY:
 				F = ENERGY_VALUE * POW(me.radius, 2) / POW(dis, 3);
@@ -163,6 +166,11 @@ void Init(){
 			//printf("AE %d dis=%f\n",i,dis);
 			if (IsBorder(border_r,AE[i]))
 				continue;
+			for(j=0,flag=0;j<devour_number;j++)
+				if (dist(AE[i],Devour[j])<me.radius && dist(AE[i],me.pos)>0.6*dist(Devour[j],me.pos))
+					flag=1;
+			if (flag)
+				continue;
 			dis=dist(AE[i], me.pos);
 			if (MinAEdistance>dis)
 			{
@@ -184,26 +192,34 @@ void Init(){
 		}
 	}
 
-	if (me.radius>1.2*boss_r  && see_boss)//如果比boss大，去吃
+	/*if (me.radius>1.2*boss_r  && see_boss)//如果比boss大，去吃
 	{
 		a2=Minus(boss.pos,me.pos);
 		//printf("eating boss!\n");
 		F=CHASING_BOSS_VALUE * POW(me.radius, 2) / POW(length(a2), 3);
 		speed=Add(speed,Multiple(F,a2));
-	}
+	}*/
 
 	FBorder(1.1*me.radius);//如果碰到边界，速度置0
 
-	Devour_Danger=!(me.shield_time>15 && me.skill_level[SHIELD]==5);
+	Devour_Danger=!(me.shield_time>20 && me.skill_level[SHIELD]==5);
 	if (Devour_Danger)
 	{
 		for (i=0;i<devour_number;i++)//处理吞噬者
 			if (IsDevour(1.1*me.radius,Devour[i]))//如果会碰到devour，速度正交化
-			{
-				a2=Minus(Devour[i],me.pos);
-				//printf("devour!\n");
-				speed=Schmidt(speed,a2);
-			}
+				ChosenDevour[coming_devour++]=Devour[i];
+		if (coming_devour==1)
+		{
+			a2=Minus(ChosenDevour[0],me.pos);
+			//printf("devour!\n");
+			speed=Schmidt(speed,a2);
+		}
+		else if (coming_devour>=2)
+		{
+			a2=Minus(ChosenDevour[0],me.pos);
+			//printf("devour!\n");
+			speed=Schmidt(speed,a2);
+		}
 	}
 	if (boss_warning && IsBoss(boss_r+me.radius,boss.pos))//如果碰到boss，正交化
 	{
@@ -261,11 +277,11 @@ int update() {
 		}
 		else {
 			AE_Parameter = MID_ADVANCED_VALUE;//1st step of update finish
-			if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
+			if (me.skill_level[SHORT_ATTACK] < kMaxSkillLevel) {
 				if (me.skill_level[DASH] < kMaxSkillLevel) {
-					if (me.ability >= cost(LONG_ATTACK)) {
+					if (me.ability >= cost(SHORT_ATTACK)) {
 						WAIT;
-						UpgradeSkill(me.id, LONG_ATTACK);
+						UpgradeSkill(me.id, SHORT_ATTACK);
 						GO;
 						return 1;
 					}
@@ -278,9 +294,9 @@ int update() {
 					else return 0;
 				}
 				else {
-					if (me.ability >= cost(LONG_ATTACK)) {
+					if (me.ability >= cost(SHORT_ATTACK)) {
 						WAIT;
-						UpgradeSkill(me.id, LONG_ATTACK);
+						UpgradeSkill(me.id, SHORT_ATTACK);
 						GO;
 						return 1;
 					}
@@ -298,10 +314,10 @@ int update() {
 			}
 			else {
 				AE_Parameter = LOW_ADVANCED_VALUE;//2st step of update finish
-				if (me.skill_level[SHORT_ATTACK] < kMaxSkillLevel) {
-					if (me.ability >= cost(SHORT_ATTACK)) {
+				if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
+					if (me.ability >= cost(LONG_ATTACK)) {
 						WAIT;
-						UpgradeSkill(me.id, SHORT_ATTACK);
+						UpgradeSkill(me.id, LONG_ATTACK);
 						GO;
 						return 1;
 					}
