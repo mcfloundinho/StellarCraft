@@ -383,6 +383,7 @@ void avoid()
 		target=aim[0];
 	if (length(minus(target.pos,aim[0].pos))<1e-6)//如果target是aim
 	{
+		printf("aim!\n");
 		for (i = 0; i<num_of_aim; i++)
 		{
 			flag = 1;
@@ -398,7 +399,7 @@ void avoid()
 			{
 				Position speed = minus(aim[i].pos, me.pos);
 				devour_count = 0;
-				if (me.shield_time>15 && me.skill_level[SHIELD] == 5)
+				if (me.shield_time>25 && me.skill_level[SHIELD] == 5)
 					devour_danger = 0;
 				else
 					devour_danger = 1;
@@ -432,6 +433,7 @@ void avoid()
 		}
 		if (i == num_of_aim)//瞬移了
 		{
+			printf("sudden moving!\n");
 			flag2 = 0;
 			for (j = 0; j<num_of_devour; j++)
 			{
@@ -460,9 +462,10 @@ void avoid()
 	
 	else//用了boss和opponent
 	{
+		printf("boss!opponent!\n");
 		Position speed = minus(target.pos, me.pos);
 		devour_count = 0;
-		if (me.shield_time>15 && me.skill_level[SHIELD] == 5)
+		if (me.shield_time>25 && me.skill_level[SHIELD] == 5)
 			devour_danger = 0;
 		else
 			devour_danger = 1;
@@ -477,7 +480,7 @@ void avoid()
 				}
 			}
 		}
-		if (devour_count == 1)
+		if (devour_count >= 1)
 		{
 			Position a2 = minus(aim_devour, me.pos);
 			speed = Schmidt(speed, a2);
