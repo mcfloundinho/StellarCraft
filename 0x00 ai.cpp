@@ -134,7 +134,23 @@ void AIMain() {
 		AVOID:
 			initial();
 		}
-		avoid();
+				if (me.skill_level[SHIELD] < kMaxSkillLevel || me.shield_time < 10) {
+			avoid();
+		}
+		else {
+			double w1 = solution[0].weight;
+			double w2 = solution[1].weight;
+			double w3 = aim[0].weight;
+			if (w1 > w2 && w1 > w3) {
+				go_for = solution[0].pos;
+			}
+			else if (w2 > w1 && w2 > w3) {
+				go_for = solution[1].pos;
+			}
+			else {
+				go_for = aim[0].pos;
+			}
+		}
 		move();
 		if (false) {
 		ANTI_LOCK:
@@ -505,6 +521,7 @@ void zw_enshaw() {
 }
 int initial() {
 	me = GetStatus()->objects[0];
+	solution[0].weight = solution[1].weight = 0;
 	num_of_aim = num_of_food = num_of_devour = 0;
 	emergency = code = 0;
 	me_radius = me.radius;
