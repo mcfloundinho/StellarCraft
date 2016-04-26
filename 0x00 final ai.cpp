@@ -34,10 +34,6 @@ struct ball {
 	Position center;
 	double radius;
 };
-double opponent_radius;//			initial()						opponent()
-double boss_radius;//				initial()						greedy()
-Position boss_pos;//				initial()						action()
-Position opponent_pos;//			initial()						opponent()
 PlayerObject me;//					initial()						almost everywhere
 int emergency;	//					opponent(),boss()				greedy()
 int ad_weight = HIGHLY_ADVANCED_VALUE;//				initial()						initial()
