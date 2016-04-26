@@ -101,7 +101,7 @@ void show(Position a);//输出矢量
 
 					  //Main
 void AIMain() {
-//	if (GetStatus()->team_id == 1)return;
+	//	if (GetStatus()->team_id == 1)return;
 	srand(time(0));
 	for (;;) {
 		code = initial();
@@ -322,7 +322,7 @@ int update() {
 					}
 					else return 0;
 				}
-			else {
+				else {
 					ad_weight = TRASH;//all finish
 					return 0;
 				}
@@ -376,17 +376,17 @@ void avoid()
 	Position aim_devour;
 	point target;
 	if (solution[1].weight>solution[2].weight)
-		target=solution[1];
+		target = solution[1];
 	else
-		target=solution[2];
+		target = solution[2];
 	if (emergency)
 	{
-		go_for=target.pos;
-		return ;
+		go_for = target.pos;
+		return;
 	}
 	if (aim[0].weight>target.weight)
-		target=aim[0];
-	if (length(minus(target.pos,aim[0].pos))<1e-6)//如果target是aim
+		target = aim[0];
+	if (length(minus(target.pos, aim[0].pos))<1e-6)//如果target是aim
 	{
 		//printf("aim!\n");
 		for (i = 0; i<num_of_aim; i++)
@@ -526,13 +526,42 @@ Position MaximumSpeed(Position vec) {
 	vec.z *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
 	return vec;
 }
+
 void move() {
 	Position speed;
 	double mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
 	speed = multiple(mode, minus(go_for, me.pos));
+	const double threshold = 0.05 * me.radius;
+	if (me.pos.x - me.radius < threshold && speed.x < 0) {
+		speed.x = 0;
+	}
+	if (me.pos.y - me.radius < threshold && speed.y < 0) {
+		speed.y = 0;
+	}
+	if (me.pos.z - me.radius < threshold && speed.z < 0) {
+		speed.z = 0;
+	}
+	if (kMapSize - me.pos.x - me.radius < threshold && speed.x > 0) {
+		speed.x = 0;
+	}
+	if (kMapSize - me.pos.y - me.radius < threshold && speed.y > 0) {
+		speed.y = 0;
+	}
+	if (kMapSize - me.pos.z - me.radius < threshold && speed.z > 0) {
+		speed.z = 0;
+	}
+	if (length(speed) == 0) {
+		printf("center\n");
+		mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos);
+		speed = multiple(mode, minus({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos));
+	}
+	else {
+		speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]), norm(speed));
+	}
 	Move(me.id, speed);
 	last_move = norm(speed);
 }
+
 point mi_zhi_yin_qiu_yang(int n) {
 	if (n >= 2) {
 		return aim[n - 2];
@@ -698,7 +727,7 @@ int opponent()
 {
 	const double safe_distance = 1000;
 	int result = 0;
-	Position temp={ kMapSize / 2, kMapSize / 2, kMapSize / 2 };
+	Position temp = { kMapSize / 2, kMapSize / 2, kMapSize / 2 };
 	solution[OPPONENT].pos = temp;
 	solution[OPPONENT].weight = 0;
 	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
@@ -738,22 +767,22 @@ void anti_lock() {
 	if (distance(me.speed, zero) < 20) return;
 	Position speed;
 	Position center = { kMapSize >> 1,kMapSize >> 1,kMapSize >> 1 };
-	Position a[6]={{ 100,0,0 },{ -100,0,0 }, { 0,100,0 },{ 0,-100,0 },{ 0,0,100 },{ 0,0,-100 }};
+	Position a[6] = { { 100,0,0 },{ -100,0,0 },{ 0,100,0 },{ 0,-100,0 },{ 0,0,100 },{ 0,0,-100 } };
 	if (!num_of_devour) {
 		if (!num_of_food) speed = minus(center, me.pos);
 		else speed = minus(food[0], me.pos);
 		goto MOVE;
 	}
 	if (!(me.pos.x > (kMapSize - 2 * me.radius))) {
-		speed =a[0];
+		speed = a[0];
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.x<2 * me.radius)) {
-		speed =a[1] ;
+		speed = a[1];
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.y > (kMapSize - 2 * me.radius))) {
-		speed =a[2];
+		speed = a[2];
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.y<2 * me.radius)) {
