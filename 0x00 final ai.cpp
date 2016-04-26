@@ -64,7 +64,7 @@ void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
 void avoid();//						avoid the devour and border		YQY
 int opponent();//					deal with the opponent			PLU		1cost
-int boss();//						smaller, kill; bigger, eat		ARC		1cost		
+int boss();//						smaller, kill; bigger, eat		ARC		1cost
 void anti_lock();
 void move();//						move to							PLU		1cost
 
@@ -101,7 +101,7 @@ void show(Position a);//输出矢量
 
 					  //Main
 void AIMain() {
-	if (GetStatus()->team_id == 1)return;
+//	if (GetStatus()->team_id == 1)return;
 	srand(time(0));
 	for (;;) {
 		code = initial();
@@ -121,11 +121,11 @@ void AIMain() {
 		update();
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&OPPONENT) {
-			//opponent();
+			opponent();
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&SEE_BOSS) {
-			//boss();
+			boss();
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (!emergency) {
@@ -459,7 +459,7 @@ void avoid()
 			}
 		}
 	}
-	
+
 	else//用了boss和opponent
 	{
 		printf("boss!opponent!\n");
@@ -492,7 +492,7 @@ void avoid()
 			go_for = target.pos;
 			return;
 		}
-		return;	
+		return;
 	}
 }
 Position Schmidt(Position a1, Position a2)
@@ -614,8 +614,8 @@ int boss() {
 	if (!~tmp) tmp = long_attack(boss_obj);
 	if (~tmp) code = 1;
 	if (me_radius < boss_obj.radius * kEatableRatio * 1.1) {
-		if (distance(me.pos, boss_obj.pos) < 3 * me_radius) emergency = 1;
-		solution[SEE_BOSS].weight = emergency ? 80000 : 20;
+		if (distance(me.pos, boss_obj.pos) < 1.1 * me_radius) emergency = 1;
+		solution[SEE_BOSS].weight = emergency ? 1000000 : 20;
 		solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 	}
 	else {
