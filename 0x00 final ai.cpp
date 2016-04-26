@@ -68,7 +68,7 @@ void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
 void avoid();//						avoid the devour and border		YQY
 int opponent();//					deal with the opponent			PLU		1cost
-int boss();//						smaller, kill; bigger, eat		ARC		1cost		
+int boss();//						smaller, kill; bigger, eat		ARC		1cost
 void anti_lock();
 void move();//						move to							PLU		1cost
 
@@ -570,7 +570,7 @@ int initial() {
 int boss() {
 	emergency = code = 0;
 	if (boss_obj.radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 10000;
+		solution[SEE_BOSS].weight = 200000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		return code;
 	}
@@ -579,7 +579,7 @@ int boss() {
 	if (~tmp) code = 1;
 	if (me_radius < boss_obj.radius * kEatableRatio * 1.1) {
 		if (distance(me.pos, boss_obj.pos) < 3 * me_radius) emergency = 1;
-		solution[SEE_BOSS].weight = emergency ? 10000 : 20;
+		solution[SEE_BOSS].weight = emergency ? 80000 : 20;
 		solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 	}
 	else {
@@ -588,7 +588,7 @@ int boss() {
 	}
 	if (boss_obj.radius < me_radius * kEatableRatio) {
 		emergency = 0;
-		solution[SEE_BOSS].weight = 10000;
+		solution[SEE_BOSS].weight = 200000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 	}
 	return code;
