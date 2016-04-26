@@ -342,12 +342,34 @@ int zw_cmp(const void* p, const void* q) {
 void avoid()
 {
 	me = GetStatus()->objects[0];
+	Position default_pos[6];
+	const Position a[6] = { { 1000,0,0 },{ -1000,0,0 },{ 0,1000,0 },{ 0,-1000,0 },{ 0,0,1000 },{ 0,0,-1000 } };
+	default_pos[0] = add(me.pos, a[0]);
+	default_pos[1] = add(me.pos, a[1]);
+	default_pos[2] = add(me.pos, a[2]);
+	default_pos[3] = add(me.pos, a[3]);
+	default_pos[4] = add(me.pos, a[4]);
+	default_pos[5] = add(me.pos, a[5]);
 	int IsDevour(double d, Position des, Position speed);
 	Position Schmidt(Position a1, Position a2);
 	int flag;//记录是否选取
+	int flag2;//记录是否在瞬移后前进方向有devour
 	int j, devour_count;
+	int devour_danger;
 	int i;
 	Position aim_devour;
+	if (solution[2].weight>aim[0].weight)
+	{
+		go_for = solution[2].pos;
+		printf("see boss\n");
+		return;
+	}
+	if (distance(aim[0].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
+	{
+		go_for = aim[0].pos;
+		printf("hahaha\n");
+		return;
+	}
 	for (i = 0; i<num_of_aim; i++)
 	{
 		flag = 1;
@@ -357,46 +379,85 @@ void avoid()
 				if (distance(aim[i].pos, me.pos)> 0.5*distance(devour[j], me.pos))
 					flag = 0;
 		}
-		if (flag == 0)
+		if (flag == 0)//旁边有devour，扔掉
 		{
 			printf("throw it away!\n");
 			continue;
 		}
 		else
 		{
-			devour_count = 0;
 			Position speed = minus(aim[i].pos, me.pos);
-			for (j = 0; j<num_of_devour; j++)
+			devour_count = 0;
+			if (distance(aim[i].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
 			{
-				if (IsDevour(1.1*me.radius, devour[j], speed))
+				devour_danger = 0;
+				printf("hahaha\n");
+			}
+			else
+				devour_danger = 1;
+			if (devour_danger)
+			{
+				for (j = 0; j<num_of_devour; j++)
 				{
-					devour_count++;
-					aim_devour = devour[j];
+					if (IsDevour(1.1*me.radius, devour[j], speed))
+					{
+						devour_count++;
+						aim_devour = devour[j];
+					}
 				}
 			}
 			if (devour_count >= 2)
-			{
 				continue;
-			}
 			else
 				if (devour_count == 1)
 				{
 					printf("warning\n");
 					Position a2 = minus(aim_devour, me.pos);
-					go_for = add(me.pos, Schmidt(speed, a2));
-					break;
+					/*if (IsBorder(1.1*me.radius,add(me.pos, speed)))
+					{
+					printf("边界哦！\n");
+					speed=FBorder(1.1*me.radius,speed);
+					}*/
+					speed = Schmidt(speed, a2);
+					go_for = add(me.pos, speed);
+					return;
 				}
 				else
 				{
 					go_for = aim[i].pos;
-					break;
+					return;
 				}
 		}
 	}
-	if (i == num_of_aim) {
-		//do sth for default
+	if (i == num_of_aim)
+	{
+		printf("sudden move\n");
+		flag2 = 0;
+		for (j = 0; j<num_of_devour; j++)
+		{
+			if (IsDevour(1.5*me.radius, devour[j], me.speed))
+				flag2 = 1;
+		}
+		if (!flag2)//如果没有问题
+		{
+			go_for = add(me.pos, me.speed);
+			return;
+		}
+		else//有问题，随机一个没有devour的方向
+		{
+			for (i = 0; i<6; i++)
+			{
+				for (j = 0; j<num_of_devour; j++)
+					if (!IsDevour(1.5*me.radius, devour[j], a[i]))
+					{
+						go_for = default_pos[i];
+						return;
+					}
+			}
+		}
 	}
 }
+
 Position Schmidt(Position a1, Position a2)
 {
 	Position temp1, temp2;
