@@ -105,8 +105,8 @@ void show(Position a);//输出矢量
 					  //Main
 void AIMain() {
 	if (GetStatus()->team_id == 1)return;
+	srand(time(0));
 	for (;;) {
-		srand(time(0));
 		code = initial();
 		if (anti_block_time < 0) {
 			anti_block_position = GetStatus()->objects[0].pos;
