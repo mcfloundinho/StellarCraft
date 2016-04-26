@@ -379,6 +379,11 @@ void avoid()
 		target=solution[1];
 	else
 		target=solution[2];
+	if (emergency)
+	{
+		go_for=target.pos;
+		return ;
+	}
 	if (aim[0].weight>target.weight)
 		target=aim[0];
 	if (length(minus(target.pos,aim[0].pos))<1e-6)//如果target是aim
