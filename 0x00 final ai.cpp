@@ -650,29 +650,6 @@ int opponent()
 	return result;
 }
 
-int opponent()
-{
-	const double safe_distance = 1000;
-	int result = 0;
-	Position temp = { kMapSize / 2, kMapSize / 2, kMapSize / 2 };
-	solution[OPPONENT].pos = temp;
-	solution[OPPONENT].weight = 0;
-	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
-		result = 1;
-	}
-	if (opponent_obj.radius > me.radius * 1.1) {
-		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
-		solution[OPPONENT].weight = 10000;
-		if (distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
-			emergency = 1;
-		}
-	}
-	else if (opponent_obj.radius < me.radius * 0.8) {
-		solution[OPPONENT].pos = add(me.pos, minus(opponent_obj.pos, me.pos));
-		solution[OPPONENT].weight = 15;
-	}
-	return result;
-}
 void anti_lock() {
 	//find a position without a devour
 	Position zero = { 0.0,0.0,0.0 };
