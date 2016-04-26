@@ -64,7 +64,7 @@ void greedy();//					find the best food				ZWT
 int update();//						update the skills, shield		ZWT		1cost
 void avoid();//						avoid the devour and border		YQY
 int opponent();//					deal with the opponent			PLU		1cost
-int boss();//						smaller, kill; bigger, eat		ARC		1cost
+int boss();//						smaller, kill; bigger, eat		ARC		1cost		
 void anti_lock();
 void move();//						move to							PLU		1cost
 
@@ -121,11 +121,11 @@ void AIMain() {
 		update();
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&OPPONENT) {
-			opponent();
+			//opponent();
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&SEE_BOSS) {
-			boss();
+			//boss();
 		}
 		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (!emergency) {
@@ -238,6 +238,15 @@ int update() {
 		return 1;
 	}
 	else {
+		if (me.skill_level[VISION_UP] == 0) {
+			if (me.ability >= zw_cost(VISION_UP)) {
+				WAIT;
+				UpgradeSkill(me.id, VISION_UP);
+				GO;
+				return 1;
+			}
+			return 0;
+		}
 		if (me.skill_level[HEALTH_UP] < kMaxSkillLevel) {
 			if (me.ability >= zw_cost(HEALTH_UP)) {
 				WAIT;
@@ -304,7 +313,16 @@ int update() {
 					}
 					else return 0;
 				}
-				else {
+				if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
+					if (me.ability >= zw_cost(VISION_UP)) {
+						WAIT;
+						UpgradeSkill(me.id, VISION_UP);
+						GO;
+						return 1;
+					}
+					else return 0;
+				}
+			else {
 					ad_weight = TRASH;//all finish
 					return 0;
 				}
@@ -324,11 +342,11 @@ void greedy() {
 	for (int temp = num_of_aim - 1; temp>0; --temp) {
 		aim[temp].weight /= distance(aim[temp].pos, me.pos);
 	}
-	std::cout << "++" << std::endl;
-	for (int temp = num_of_aim - 1; ~temp; --temp) {
-		std::cout << aim[temp].weight << std::endl;
-	}
-	std::cout << "++" << std::endl;
+	//std::cout << "++" << std::endl;
+	//for (int temp = num_of_aim - 1; ~temp; --temp) {
+	//	std::cout << aim[temp].weight << std::endl;
+	//}
+	//std::cout << "++" << std::endl;
 	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
 
 }
@@ -566,7 +584,7 @@ int initial() {
 int boss() {
 	emergency = code = 0;
 	if (boss_obj.radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 200000;
+		solution[SEE_BOSS].weight = 10000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		return code;
 	}
@@ -575,7 +593,7 @@ int boss() {
 	if (~tmp) code = 1;
 	if (me_radius < boss_obj.radius * kEatableRatio * 1.1) {
 		if (distance(me.pos, boss_obj.pos) < 3 * me_radius) emergency = 1;
-		solution[SEE_BOSS].weight = emergency ? 80000 : 20;
+		solution[SEE_BOSS].weight = emergency ? 10000 : 20;
 		solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 	}
 	else {
@@ -584,7 +602,7 @@ int boss() {
 	}
 	if (boss_obj.radius < me_radius * kEatableRatio) {
 		emergency = 0;
-		solution[SEE_BOSS].weight = 200000;
+		solution[SEE_BOSS].weight = 10000;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 	}
 	return code;
