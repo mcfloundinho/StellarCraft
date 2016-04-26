@@ -9,11 +9,11 @@
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
 enum value {
-	ENERGY_VALUE = (int)1e6,
-	HIGHLY_ADVANCED_VALUE = (int)1e8,
-	MID_ADVANCED_VALUE = (int)1e7,
-	LOW_ADVANCED_VALUE = (int)1e6,
-	LOW_LOW_ADVANCED_VALUE = 5 * (int)1e5,
+	ENERGY_VALUE = 7 * (int)1e6,
+	HIGHLY_ADVANCED_VALUE = 7 * (int)1e7,
+	MID_ADVANCED_VALUE = 2 * (int)1e7,
+	LOW_ADVANCED_VALUE = 8 * (int)1e5,
+	LOW_LOW_ADVANCED_VALUE = (int)1e5,
 	TRASH = 0,
 };
 enum situation {
@@ -63,7 +63,7 @@ int opponent();//					deal with the opponent			PLU		1cost
 int boss();//						smaller, kill; bigger, eat		ARC		1cost		
 void move();//						move to							PLU		1cost
 
-//auxiliary variables
+			//auxiliary variables
 int en_weight = 20;
 char bitmap[(MAX_SIZE >> 3) + 1];
 
@@ -86,7 +86,7 @@ Position norm(Position a);//求单位矢量
 double distance(Position a, Position b);//求AB两点距离
 void show(Position a);//输出矢量 
 
-//Main
+					  //Main
 void AIMain() {
 	if (GetStatus()->team_id == 1)return;
 	for (;;) {
@@ -192,7 +192,7 @@ int zw_cost(int skill) {
 	}
 }
 int update() {
-	if (me.skill_cd[SHIELD] == 0 && me.short_attack_casting == -1 && me.long_attack_casting == -1) {
+	if (me.skill_level[SHIELD] >= 3 && me.skill_cd[SHIELD] == 0 && me.short_attack_casting == -1 && me.long_attack_casting == -1) {
 		WAIT;
 		Shield(me.id);
 		GO;
@@ -430,33 +430,33 @@ void move() {
 	speed = multiple(mode, minus(go_for, me.pos));
 	// edge
 	//if (me.radius > 8000) {
-		const double threshold = 0.05 * me.radius;
-		if (me.pos.x - me.radius < threshold && speed.x < 0) {
-			speed.x = 0;
-		}
-		if (me.pos.y - me.radius < threshold && speed.y < 0) {
-			speed.y = 0;
-		}
-		if (me.pos.z - me.radius < threshold && speed.z < 0) {
-			speed.z = 0;
-		}
-		if (kMapSize - me.pos.x - me.radius < threshold && speed.x > 0) {
-			speed.x = 0;
-		}
-		if (kMapSize - me.pos.y - me.radius < threshold && speed.y > 0) {
-			speed.y = 0;
-		}
-		if (kMapSize - me.pos.z - me.radius < threshold && speed.z > 0) {
-			speed.z = 0;
-		}
-		if (length(speed) == 0) {
-			printf("center\n");
-			mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos);
-			speed = multiple(mode, minus({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos));
-		}
-		else {
-			speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]), norm(speed));
-		}
+	const double threshold = 0.05 * me.radius;
+	if (me.pos.x - me.radius < threshold && speed.x < 0) {
+		speed.x = 0;
+	}
+	if (me.pos.y - me.radius < threshold && speed.y < 0) {
+		speed.y = 0;
+	}
+	if (me.pos.z - me.radius < threshold && speed.z < 0) {
+		speed.z = 0;
+	}
+	if (kMapSize - me.pos.x - me.radius < threshold && speed.x > 0) {
+		speed.x = 0;
+	}
+	if (kMapSize - me.pos.y - me.radius < threshold && speed.y > 0) {
+		speed.y = 0;
+	}
+	if (kMapSize - me.pos.z - me.radius < threshold && speed.z > 0) {
+		speed.z = 0;
+	}
+	if (length(speed) == 0) {
+		printf("center\n");
+		mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos);
+		speed = multiple(mode, minus({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos));
+	}
+	else {
+		speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]), norm(speed));
+	}
 	//}
 	Move(me.id, speed);
 	last_move = norm(speed);
@@ -505,7 +505,7 @@ int initial() {
 			if ((*map).objects[i].pos.x + ratio * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.y + ratio * me_radius > kMapSize) break;
 			if ((*map).objects[i].pos.z + ratio * me_radius > kMapSize) break;
-			food[num_of_food].weight =  ENERGY_VALUE;
+			food[num_of_food].weight = ENERGY_VALUE;
 			food[num_of_food].pos = (*map).objects[i].pos;
 			++num_of_food;
 			break;
@@ -589,7 +589,7 @@ int long_attack(const Object& target)
 		return -1;
 	}
 	if (distance(target.pos, me.pos) - target.radius - me.radius
-	> kLongAttackRange[me.skill_level[LONG_ATTACK]]) {
+		> kLongAttackRange[me.skill_level[LONG_ATTACK]]) {
 		return -1;
 	}
 	WAIT;
@@ -647,8 +647,8 @@ int opponent()
 		result = 1;
 	}
 	/*if (opponent_obj.radius > me.radius && me.skill_level[SHORT_ATTACK] == 0) {
-		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
-		solution[OPPONENT].weight = 1e8;
+	solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+	solution[OPPONENT].weight = 1e8;
 	}*/
 	if (opponent_obj.radius > me.radius / (kEatableRatio * 1.05)) {
 		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
@@ -662,7 +662,7 @@ int opponent()
 			emergency = 1;
 		}
 	}
-	else if (opponent_obj.radius < me.radius * kEatableRatio 
+	else if (opponent_obj.radius < me.radius * kEatableRatio
 		&& distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
 		solution[OPPONENT].pos = opponent_obj.pos;
 		solution[OPPONENT].weight = 1e6;
