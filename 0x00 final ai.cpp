@@ -383,7 +383,7 @@ void avoid()
 		target=aim[0];
 	if (length(minus(target.pos,aim[0].pos))<1e-6)//如果target是aim
 	{
-		printf("aim!\n");
+		//printf("aim!\n");
 		for (i = 0; i<num_of_aim; i++)
 		{
 			flag = 1;
@@ -433,7 +433,7 @@ void avoid()
 		}
 		if (i == num_of_aim)//瞬移了
 		{
-			printf("sudden moving!\n");
+			//printf("sudden moving!\n");
 			flag2 = 0;
 			for (j = 0; j<num_of_devour; j++)
 			{
