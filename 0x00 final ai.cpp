@@ -92,14 +92,14 @@ int zw_devour(double d, Position speed);
 
 //lower level function
 Position add(Position a, Position b);//a+b
-Position minus(Position a, Position b);//a-b£¬´ÓBÖ¸ÏòAµÄÏòÁ¿
-Position multiple(double k, Position a);//ka£¬Êı³Ë
-Position cross_product(Position a, Position b);//a*b ²æ³Ë
+Position minus(Position a, Position b);//a-bï¼Œä»BæŒ‡å‘Açš„å‘é‡
+Position multiple(double k, Position a);//kaï¼Œæ•°ä¹˜
+Position cross_product(Position a, Position b);//a*b å‰ä¹˜
 double dot_product(Position a, Position b);//ab
-double length(Position a);//ÇóÊ¸Á¿Ä£³¤
-Position norm(Position a);//Çóµ¥Î»Ê¸Á¿
-double distance(Position a, Position b);//ÇóABÁ½µã¾àÀë
-void show(Position a);//Êä³öÊ¸Á¿
+double length(Position a);//æ±‚çŸ¢é‡æ¨¡é•¿
+Position norm(Position a);//æ±‚å•ä½çŸ¢é‡
+double distance(Position a, Position b);//æ±‚ABä¸¤ç‚¹è·ç¦»
+void show(Position a);//è¾“å‡ºçŸ¢é‡
 
 
 					  //Main
@@ -337,8 +337,8 @@ void avoid()
 	default_pos[5] = add(me.pos, a[5]);
 	int IsDevour(double d, Position des, Position speed);
 	Position Schmidt(Position a1, Position a2);
-	int flag;//¼ÇÂ¼ÊÇ·ñÑ¡È¡
-	int flag2;//¼ÇÂ¼ÊÇ·ñÔÚË²ÒÆºóÇ°½ø·½ÏòÓĞdevour
+	int flag;//è®°å½•æ˜¯å¦é€‰å–
+	int flag2;//è®°å½•æ˜¯å¦åœ¨ç¬ç§»åå‰è¿›æ–¹å‘æœ‰devour
 	int j, devour_count;
 	int devour_danger;
 	int i;
@@ -346,7 +346,7 @@ void avoid()
 	if (solution[2].weight>aim[0].weight)
 	{
 		go_for = solution[2].pos;
-//		printf("Óö¼ûbossÁË£¡£¡ºÃÅÂÅÂ£¡£¡\n");
+//		printf("é‡è§bossäº†ï¼ï¼å¥½æ€•æ€•ï¼ï¼\n");
 		return;
 	}
 	if (distance(aim[0].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
@@ -360,11 +360,11 @@ void avoid()
 		flag = 1;
 		for (j = 0;j<num_of_devour;j++)
 		{
-			if (distance(aim[i].pos, devour[j])<1 * me.radius)//Èç¹ûÄ¿±ê¸½½üÓĞÍÌÊÉÕß
+			if (distance(aim[i].pos, devour[j])<1 * me.radius)//å¦‚æœç›®æ ‡é™„è¿‘æœ‰åå™¬è€…
 				if (distance(aim[i].pos, me.pos)> 0.5*distance(devour[j], me.pos))
 					flag = 0;
 		}
-		if (flag == 0)//ÅÔ±ßÓĞdevour£¬ÈÓµô
+		if (flag == 0)//æ—è¾¹æœ‰devourï¼Œæ‰”æ‰
 		{
 //			printf("throw it away!\n");
 			continue;
@@ -400,7 +400,7 @@ void avoid()
 					Position a2 = minus(aim_devour, me.pos);
 					/*if (IsBorder(1.1*me.radius,add(me.pos, speed)))
 					{
-					printf("±ß½çÅ¶£¡\n");
+					printf("è¾¹ç•Œå“¦ï¼\n");
 					speed=FBorder(1.1*me.radius,speed);
 					}*/
 					speed = Schmidt(speed, a2);
@@ -416,19 +416,19 @@ void avoid()
 	}
 	if (i == num_of_aim)
 	{
-//		printf("Ë²ÒÆÁË£¡\n");
+//		printf("ç¬ç§»äº†ï¼\n");
 		flag2 = 0;
 		for (j = 0;j<num_of_devour;j++)
 		{
 			if (IsDevour(1.5*me.radius, devour[j], me.speed))
 				flag2 = 1;
 		}
-		if (!flag2)//Èç¹ûÃ»ÓĞÎÊÌâ
+		if (!flag2)//å¦‚æœæ²¡æœ‰é—®é¢˜
 		{
 			go_for = add(me.pos, me.speed);
 			return;
 		}
-		else//ÓĞÎÊÌâ£¬Ëæ»úÒ»¸öÃ»ÓĞdevourµÄ·½Ïò
+		else//æœ‰é—®é¢˜ï¼Œéšæœºä¸€ä¸ªæ²¡æœ‰devourçš„æ–¹å‘
 		{
 			for (i = 0;i<6;i++)
 			{
@@ -449,7 +449,7 @@ Position Schmidt(Position a1, Position a2)
 	temp1 = minus(a1, temp2);
 	return temp1;
 }
-int IsDevour(double d, Position des, Position speed)//ÅĞ¶ÏÏÂÒ»Ê±¿Ì»á²»»áÅöµ½ÍÌÊÉÕß
+int IsDevour(double d, Position des, Position speed)//åˆ¤æ–­ä¸‹ä¸€æ—¶åˆ»ä¼šä¸ä¼šç¢°åˆ°åå™¬è€…
 {
 	int flag = 0;
 	Position Next;
@@ -595,26 +595,44 @@ int long_attack(const Object& target)
 	GO;
 	return 0;
 }
-int short_attack(const Object& target)
+
+int opponent()
 {
-	if (me.skill_cd[SHORT_ATTACK] == -1) {
-		return -1;
+	const double safe_distance = 1000;
+	int result = 0;
+	solution[OPPONENT].pos = { kMapSize / 2, kMapSize / 2, kMapSize / 2 };
+	solution[OPPONENT].weight = 0;
+	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
+		result = 1;
 	}
-	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
-		return -1;
+	/*if (opponent_obj.radius > me.radius && me.skill_level[SHORT_ATTACK] == 0) {
+	solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+	solution[OPPONENT].weight = 1e8;
+	}*/
+	if (opponent_obj.radius > me.radius / (kEatableRatio * 1.05)) {
+		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+		if (distance(opponent_obj.pos, me.pos) < kVision[0]) {
+			solution[OPPONENT].weight = 1e9;
+		}
+		else {
+			solution[OPPONENT].weight = 1e4;
+		}
+		if (distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
+			emergency = 1;
+		}
 	}
-	if (target.shield_time > 0) {
-		return -1;
+	else if (opponent_obj.radius < me.radius * kEatableRatio
+		&& distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
+		solution[OPPONENT].pos = opponent_obj.pos;
+		solution[OPPONENT].weight = 1e6;
 	}
-	if (distance(target.pos, me.pos) - target.radius - me.radius
-			> kShortAttackRange[me.skill_level[SHORT_ATTACK]]) {
-		return -1;
-	}
-	WAIT;
-	ShortAttack(me.id);
-	GO;
-	return 0;
+	//else {
+	//	solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+	//	solution[OPPONENT].weight = 1e4;
+	//}
+	return result;
 }
+
 int opponent()
 {
 	const double safe_distance = 1000;
@@ -706,7 +724,7 @@ MOVE:
 		update();
 	}
 }
-int zw_IsDevour(double d, Position des, Position speed)//ÅĞ¶ÏÏÂÒ»Ê±¿Ì»á²»»áÅöµ½ÍÌÊÉÕß
+int zw_IsDevour(double d, Position des, Position speed)//åˆ¤æ–­ä¸‹ä¸€æ—¶åˆ»ä¼šä¸ä¼šç¢°åˆ°åå™¬è€…
 {
 	int flag = 0;
 	Position Next;
