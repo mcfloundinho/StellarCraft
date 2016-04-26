@@ -82,6 +82,7 @@ int zw_cost(int skill);
 int zw_cmp(const void*, const void*);
 int long_attack(const Object& target);
 int short_attack(const Object& target);
+int dash();
 void zw_enshaw();
 int IsDevour(double d, Position des, Position speed);
 int zw_IsDevour(double d, Position des, Position speed);
@@ -112,7 +113,7 @@ void AIMain() {
 			anti_block_position = GetStatus()->objects[0].pos;
 			anti_block_time = 0;
 		}
-		if ((GetTime()>>6) != anti_block_time) {
+		if ((GetTime() >> 6) != anti_block_time) {
 			if (distance(anti_block_position, GetStatus()->objects[0].pos)<1000) {
 				goto ANTI_LOCK;
 			}
@@ -227,14 +228,14 @@ int zw_cost(int skill) {
 	}
 	else {
 		int count = 0;
-		for (int i = 0;i < kSkillTypes;i++) {
+		for (int i = 0; i < kSkillTypes; i++) {
 			if (me.skill_level[i]) count++;
 		}
 		return kBasicSkillPrice[skill] << count;
 	}
 }
 int update() {
-	if (me.skill_cd[SHIELD] == 0 /*&& me.short_attack_casting == -1 */&& me.long_attack_casting == -1) {
+	if (me.skill_cd[SHIELD] == 0 /*&& me.short_attack_casting == -1 */ && me.long_attack_casting == -1) {
 		WAIT;
 		Shield(me.id);
 		GO;
@@ -319,21 +320,21 @@ int update() {
 void greedy() {
 	if (emergency)return;
 	zw_enshaw();
-	for (int temp = num_of_advance - 1;~temp;--temp) {
-			aim[num_of_aim].pos = advanced[temp];
-			aim[num_of_aim].weight = ad_weight;
-			++num_of_aim;
+	for (int temp = num_of_advance - 1; ~temp; --temp) {
+		aim[num_of_aim].pos = advanced[temp];
+		aim[num_of_aim].weight = ad_weight;
+		++num_of_aim;
 	}
-	for (int temp = num_of_aim - 1;temp>0;--temp) {
+	for (int temp = num_of_aim - 1; temp>0; --temp) {
 		aim[temp].weight /= distance(aim[temp].pos, me.pos);
 	}
 	std::cout << "++" << std::endl;
-	for (int temp = num_of_aim - 1;~temp;--temp) {
+	for (int temp = num_of_aim - 1; ~temp; --temp) {
 		std::cout << aim[temp].weight << std::endl;
 	}
 	std::cout << "++" << std::endl;
 	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
-	
+
 }
 int zw_cmp(const void* p, const void* q) {
 	int w1 = (((point*)p)->weight);
@@ -362,19 +363,19 @@ void avoid()
 	if (solution[2].weight>aim[0].weight)
 	{
 		go_for = solution[2].pos;
-//		printf("遇见boss了！！好怕怕！！\n");
+		//		printf("遇见boss了！！好怕怕！！\n");
 		return;
 	}
 	if (distance(aim[0].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
 	{
 		go_for = aim[0].pos;
-//		printf("hahaha\n");
+		//		printf("hahaha\n");
 		return;
 	}
-	for (i = 0;i<num_of_aim;i++)
+	for (i = 0; i<num_of_aim; i++)
 	{
 		flag = 1;
-		for (j = 0;j<num_of_devour;j++)
+		for (j = 0; j<num_of_devour; j++)
 		{
 			if (distance(aim[i].pos, devour[j])<1 * me.radius)//如果目标附近有吞噬者
 				if (distance(aim[i].pos, me.pos)> 0.5*distance(devour[j], me.pos))
@@ -382,7 +383,7 @@ void avoid()
 		}
 		if (flag == 0)//旁边有devour，扔掉
 		{
-//			printf("throw it away!\n");
+			//			printf("throw it away!\n");
 			continue;
 		}
 		else
@@ -392,13 +393,13 @@ void avoid()
 			if (distance(aim[i].pos, me.pos) / kMaxMoveSpeed <= me.shield_time && me.skill_level[SHIELD] == 5)
 			{
 				devour_danger = 0;
-//				printf("hahaha\n");
+				//				printf("hahaha\n");
 			}
 			else
 				devour_danger = 1;
 			if (devour_danger)
 			{
-				for (j = 0;j<num_of_devour;j++)
+				for (j = 0; j<num_of_devour; j++)
 				{
 					if (IsDevour(1.1*me.radius, devour[j], speed))
 					{
@@ -432,9 +433,9 @@ void avoid()
 	}
 	if (i == num_of_aim)
 	{
-//		printf("瞬移了！\n");
+		//		printf("瞬移了！\n");
 		flag2 = 0;
-		for (j = 0;j<num_of_devour;j++)
+		for (j = 0; j<num_of_devour; j++)
 		{
 			if (IsDevour(1.5*me.radius, devour[j], me.speed))
 				flag2 = 1;
@@ -446,9 +447,9 @@ void avoid()
 		}
 		else//有问题，随机一个没有devour的方向
 		{
-			for (i = 0;i<6;i++)
+			for (i = 0; i<6; i++)
 			{
-				for (j = 0;j<num_of_devour;j++)
+				for (j = 0; j<num_of_devour; j++)
 					if (!IsDevour(1.5*me.radius, devour[j], a[i]))
 					{
 						go_for = default_pos[i];
@@ -469,7 +470,7 @@ int IsDevour(double d, Position des, Position speed)//判断下一时刻会不�
 {
 	int flag = 0;
 	Position Next;
-	for (int i = 1;i <= 8;i++)
+	for (int i = 1; i <= 8; i++)
 	{
 		Next = add(me.pos, multiple(i, MaximumSpeed(speed)));
 		if (distance(Next, des)<d)
@@ -505,7 +506,7 @@ void zw_enshaw() {
 	num_of_aim = 1;
 	Position force = { 0.0,0.0,0.0 };
 	int n = num_of_food - 1;
-	for (;n >= 0;n--) {
+	for (; n >= 0; n--) {
 		Position point_to = minus(food[n], me.pos);
 		double k = me_radius / length(point_to);
 		force = add(force, multiple(k*k*ENERGY_VALUE, point_to));
@@ -576,7 +577,7 @@ int boss() {
 	int tmp = short_attack(boss_obj);
 	if (!~tmp) tmp = long_attack(boss_obj);
 	if (~tmp) code = 1;
-	if (me_radius < boss_obj.radius * kEatableRatio * 1.1){
+	if (me_radius < boss_obj.radius * kEatableRatio * 1.1) {
 		if (distance(me.pos, boss_obj.pos) < 3 * me_radius) emergency = 1;
 		solution[SEE_BOSS].weight = emergency ? 10000 : 20;
 		solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
@@ -604,11 +605,50 @@ int long_attack(const Object& target)
 		return -1;
 	}
 	if (distance(target.pos, me.pos) - target.radius - me.radius
-	> kLongAttackRange[me.skill_level[LONG_ATTACK]]) {
+		> kLongAttackRange[me.skill_level[LONG_ATTACK]]) {
 		return -1;
 	}
 	WAIT;
 	LongAttack(me.id, target.id);
+	GO;
+	return 0;
+}
+
+int short_attack(const Object& target)
+{
+	dash();
+	if (me.skill_cd[SHORT_ATTACK] == -1) {
+		return -1;
+	}
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+		return -1;
+	}
+	if (target.shield_time > 0) {
+		return -1;
+	}
+	if (distance(target.pos, me.pos) - target.radius - me.radius
+	> kShortAttackRange[me.skill_level[SHORT_ATTACK]]) {
+		return -1;
+	}
+	WAIT;
+	ShortAttack(me.id);
+	GO;
+	return 0;
+}
+
+int dash()
+{
+	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+		return -1;
+	}
+	if (!me.skill_level[DASH]) {
+		return -1;
+	}
+	if (me.skill_cd[DASH] == -1) {
+		return -1;
+	}
+	WAIT;
+	Dash(me.id);
 	GO;
 	return 0;
 }
@@ -661,27 +701,27 @@ void anti_lock() {
 		else speed = minus(food[0], me.pos);
 		goto MOVE;
 	}
-	if (!(me.pos.x > (kMapSize - 2*me.radius))) {
+	if (!(me.pos.x > (kMapSize - 2 * me.radius))) {
 		speed = { 100,0,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
-	if (!(me.pos.x<2*me.radius)) {
+	if (!(me.pos.x<2 * me.radius)) {
 		speed = { -100,0,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
-	if (!(me.pos.y > (kMapSize - 2*me.radius))) {
+	if (!(me.pos.y > (kMapSize - 2 * me.radius))) {
 		speed = { 0,100,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
-	if (!(me.pos.y<2*me.radius)) {
+	if (!(me.pos.y<2 * me.radius)) {
 		speed = { 0,-100,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
-	if (!(me.pos.z > (kMapSize - 2*me.radius))) {
+	if (!(me.pos.z > (kMapSize - 2 * me.radius))) {
 		speed = { 0,0,100 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
-	if (!(me.pos.z<2*me.radius)) {
+	if (!(me.pos.z<2 * me.radius)) {
 		speed = { 0,0,-100 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
@@ -722,7 +762,7 @@ int zw_IsDevour(double d, Position des, Position speed)//判断下一时刻会�
 {
 	int flag = 0;
 	Position Next;
-	for (int i = 1;i <= 60;i++)
+	for (int i = 1; i <= 60; i++)
 	{
 		Next = add(me.pos, multiple(i, MaximumSpeed(speed)));
 		if (distance(Next, des) < d)
@@ -733,7 +773,7 @@ int zw_IsDevour(double d, Position des, Position speed)//判断下一时刻会�
 int zw_devour(double d, Position speed) {
 	int result = 0;
 	int temp = num_of_devour - 1;
-	for (temp;~temp;--temp) {
+	for (temp; ~temp; --temp) {
 		if (zw_IsDevour(d, devour[temp], speed)) result++;
 	}
 	return result;
