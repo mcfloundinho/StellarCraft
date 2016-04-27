@@ -1,25 +1,30 @@
-#include "teamstyle17.h"
+﻿#include "teamstyle17.h"
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
 #include<time.h>
 #include<iostream>
-#define MAX_SIZE 1000
+#define MAX_SIZE 100
 #define WAIT  while(GetTime()==operate_time);
 #define GO   (operate_time=GetTime());
 #define NUM_OF_SOLUTION  3
 enum value {
 	//ZW about food& aim
 	//the value of energy is 100~1000
-	//the value of advanced energy is 1000~10000 with the setting of HIGHLY_ADVANCED_VALUE
+	//the value of advanced energy is 10000~100000 with the setting of HIGHLY_ADVANCED_VALUE
 	//the value of enshaw is 500~2000
 	//the value of food is lower than 1e6
 	ENERGY_VALUE = 1000000,
 	HIGHLY_ADVANCED_VALUE = 100000000,
-	MID_ADVANCED_VALUE = 10000000,
-	LOW_ADVANCED_VALUE = 1000000,
+	MID_ADVANCED_VALUE = 50000000,
+	LOW_ADVANCED_VALUE = 10000000,
 	TRASH = 0,
-
+	/**************/
+	EATABLE_BOSS_WEIGHT=200000,
+	BOSS_EATEN_WEIGHT= 50000000,
+	/**************/
+	RUN_AWAY_WEIGHT=1000000,
+	OPPONENT_EATEN_WEIGHT= 100000000,
 };
 enum situation {
 	NONE = 0,
@@ -34,6 +39,10 @@ struct ball {
 	Position center;
 	double radius;
 };
+double opponent_radius;//			initial()						opponent()
+double boss_radius;//				initial()						greedy()
+Position boss_pos;//				initial()						action()
+Position opponent_pos;//			initial()						opponent()
 PlayerObject me;//					initial()						almost everywhere
 int emergency;	//					opponent(),boss()				greedy()
 int ad_weight = HIGHLY_ADVANCED_VALUE;//				initial()						initial()
@@ -69,7 +78,7 @@ void anti_lock();
 void move();//						move to							PLU		1cost
 
 
-			//auxiliary variables
+//auxiliary variables
 int en_weight = 20;
 
 
@@ -101,7 +110,7 @@ void show(Position a);//输出矢量
 
 					  //Main
 void AIMain() {
-	//	if (GetStatus()->team_id == 1)return;
+	if (GetStatus()->team_id == 1)return;
 	srand(time(0));
 	for (;;) {
 		code = initial();
@@ -238,15 +247,6 @@ int update() {
 		return 1;
 	}
 	else {
-		if (me.skill_level[VISION_UP] == 0) {
-			if (me.ability >= zw_cost(VISION_UP)) {
-				WAIT;
-				UpgradeSkill(me.id, VISION_UP);
-				GO;
-				return 1;
-			}
-			return 0;
-		}
 		if (me.skill_level[HEALTH_UP] < kMaxSkillLevel) {
 			if (me.ability >= zw_cost(HEALTH_UP)) {
 				WAIT;
@@ -265,8 +265,15 @@ int update() {
 			}
 			else return 0;
 		}
+		if (me.skill_level[VISION_UP] < 1) {
+			WAIT;
+			UpgradeSkill(me.id, VISION_UP);
+			GO;
+		}
 		else {
-			ad_weight = MID_ADVANCED_VALUE;//1st step of update finish
+			if (me.skill_level[SHORT_ATTACK] > 0) {
+				ad_weight = MID_ADVANCED_VALUE;//1st step of update finish
+			}
 			if (me.skill_level[SHORT_ATTACK] < kMaxSkillLevel) {
 				if (me.skill_level[DASH] < kMaxSkillLevel) {
 					if (me.ability >= zw_cost(SHORT_ATTACK)) {
@@ -303,7 +310,9 @@ int update() {
 				else return 0;
 			}
 			else {
-				ad_weight = LOW_ADVANCED_VALUE;//2st step of update finish
+				if (me.skill_level[LONG_ATTACK]>0) {
+					ad_weight = LOW_ADVANCED_VALUE;//2st step of update finish
+				}
 				if (me.skill_level[LONG_ATTACK] < kMaxSkillLevel) {
 					if (me.ability >= zw_cost(LONG_ATTACK)) {
 						WAIT;
@@ -312,27 +321,26 @@ int update() {
 						return 1;
 					}
 					else return 0;
-				}
-				if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
-					if (me.ability >= zw_cost(VISION_UP)) {
-						WAIT;
-						UpgradeSkill(me.id, VISION_UP);
-						GO;
-						return 1;
+					if (me.skill_level[VISION_UP] < kMaxSkillLevel) {
+						if (me.ability >= zw_cost(VISION_UP)) {
+							WAIT;
+							UpgradeSkill(me.id, VISION_UP);
+							GO;
+							return 1;
+						}
+						else return 0;
 					}
-					else return 0;
+					else {
+						ad_weight = TRASH;//all finish
+						return 0;
+					}
 				}
-				else {
-					ad_weight = TRASH;//all finish
-					return 0;
-				}
+				return 0;
 			}
-			return 0;
 		}
 	}
 }
 void greedy() {
-	if (emergency)return;
 	zw_enshaw();
 	for (int temp = num_of_advance - 1; ~temp; --temp) {
 		aim[num_of_aim].pos = advanced[temp];
@@ -342,11 +350,11 @@ void greedy() {
 	for (int temp = num_of_aim - 1; temp>0; --temp) {
 		aim[temp].weight /= distance(aim[temp].pos, me.pos);
 	}
-	//std::cout << "++" << std::endl;
-	//for (int temp = num_of_aim - 1; ~temp; --temp) {
-	//	std::cout << aim[temp].weight << std::endl;
-	//}
-	//std::cout << "++" << std::endl;
+	std::cout << "++" << std::endl;
+	for (int temp = num_of_aim - 1; ~temp; --temp) {
+		std::cout << aim[temp].weight << std::endl;
+	}
+	std::cout << "++" << std::endl;
 	qsort(aim, num_of_aim, sizeof(point), zw_cmp);
 
 }
@@ -379,11 +387,6 @@ void avoid()
 		target = solution[1];
 	else
 		target = solution[2];
-	if (emergency)
-	{
-		go_for = target.pos;
-		return;
-	}
 	if (aim[0].weight>target.weight)
 		target = aim[0];
 	if (length(minus(target.pos, aim[0].pos))<1e-6)//如果target是aim
@@ -526,42 +529,13 @@ Position MaximumSpeed(Position vec) {
 	vec.z *= (kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / len;
 	return vec;
 }
-
 void move() {
 	Position speed;
 	double mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance(go_for, me.pos);
 	speed = multiple(mode, minus(go_for, me.pos));
-	const double threshold = 0.05 * me.radius;
-	if (me.pos.x - me.radius < threshold && speed.x < 0) {
-		speed.x = 0;
-	}
-	if (me.pos.y - me.radius < threshold && speed.y < 0) {
-		speed.y = 0;
-	}
-	if (me.pos.z - me.radius < threshold && speed.z < 0) {
-		speed.z = 0;
-	}
-	if (kMapSize - me.pos.x - me.radius < threshold && speed.x > 0) {
-		speed.x = 0;
-	}
-	if (kMapSize - me.pos.y - me.radius < threshold && speed.y > 0) {
-		speed.y = 0;
-	}
-	if (kMapSize - me.pos.z - me.radius < threshold && speed.z > 0) {
-		speed.z = 0;
-	}
-	if (length(speed) == 0) {
-		printf("center\n");
-		mode = (10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]) / distance({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos);
-		speed = multiple(mode, minus({ kMapSize / 2, kMapSize / 2, kMapSize / 2 }, me.pos));
-	}
-	else {
-		speed = multiple((10 + kMaxMoveSpeed + kDashSpeed[me.skill_level[DASH]]), norm(speed));
-	}
 	Move(me.id, speed);
 	last_move = norm(speed);
 }
-
 point mi_zhi_yin_qiu_yang(int n) {
 	if (n >= 2) {
 		return aim[n - 2];
@@ -572,7 +546,7 @@ point mi_zhi_yin_qiu_yang(int n) {
 }
 void zw_enshaw() {
 	double len = 2 * me.radius;
-	double div = 5e-7;//?
+	double div = 1e-6;//?
 	num_of_aim = 1;
 	Position force = { 0.0,0.0,0.0 };
 	int n = num_of_food - 1;
@@ -582,9 +556,12 @@ void zw_enshaw() {
 		force = add(force, multiple(k*k*ENERGY_VALUE, point_to));
 	}
 	aim[0].weight = (int)((length(force))*div);
-	aim[0].pos = add(me.pos, force);
+	aim[0].pos = add(me.pos, multiple(100*div,force));
 }
 int initial() {
+	for (int i = 2;~i;--i) {
+		solution[i].weight = -1;
+	}
 	me = GetStatus()->objects[0];
 	solution[0].weight = solution[1].weight = 0;
 	num_of_aim = num_of_food = num_of_advance = num_of_devour = 0;
@@ -599,7 +576,7 @@ int initial() {
 		case PLAYER:
 			if ((*map).objects[i].team_id == GetStatus()->team_id) break;
 			opponent_obj = (*map).objects[i];
-			code ^= OPPONENT;
+			code |= OPPONENT;
 			break;
 		case ENERGY:
 			if ((*map).objects[i].pos.x - r * me_radius < 0) break;
@@ -630,7 +607,7 @@ int initial() {
 			break;
 		case BOSS:
 			boss_obj = (*map).objects[i];
-			code ^= SEE_BOSS;
+			code |= SEE_BOSS;
 			break;
 		default: break;
 		}
@@ -640,7 +617,7 @@ int initial() {
 int boss() {
 	emergency = code = 0;
 	if (boss_obj.radius < me_radius * kEatableRatio) {
-		solution[SEE_BOSS].weight = 200000;
+		solution[SEE_BOSS].weight = EATABLE_BOSS_WEIGHT;
 		solution[SEE_BOSS].pos = boss_obj.pos;
 		return code;
 	}
@@ -648,19 +625,19 @@ int boss() {
 	if (!~tmp) tmp = long_attack(boss_obj);
 	if (~tmp) code = 1;
 	if (me_radius < boss_obj.radius * kEatableRatio * 1.1) {
-		if (distance(me.pos, boss_obj.pos) < 1.1 * me_radius) emergency = 1;
-		solution[SEE_BOSS].weight = emergency ? 1000000 : 20;
+		if (distance(me.pos, boss_obj.pos) < 500) emergency = 1;
+		solution[SEE_BOSS].weight = emergency ? BOSS_EATEN_WEIGHT : TRASH;
 		solution[SEE_BOSS].pos = add(me.pos, minus(me.pos, boss_obj.pos));
 	}
 	else {
-		solution[SEE_BOSS].weight = 1;
+		solution[SEE_BOSS].weight = TRASH;
 		solution[SEE_BOSS].pos = me.pos;
 	}
-	if (boss_obj.radius < me_radius * kEatableRatio) {
+	/*if (boss_obj.radius < me_radius * kEatableRatio) {
 		emergency = 0;
-		solution[SEE_BOSS].weight = 200000;
+		solution[SEE_BOSS].weight = EATABLE_BOSS_WEIGHT;
 		solution[SEE_BOSS].pos = boss_obj.pos;
-	}
+	}*/
 	return code;
 }
 int long_attack(const Object& target)
@@ -690,7 +667,7 @@ int short_attack(const Object& target)
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
 		return -1;
 	}
-	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
 		return -1;
 	}
 	if (target.shield_time > 0) {
@@ -708,7 +685,7 @@ int short_attack(const Object& target)
 
 int dash()
 {
-	if (me.long_attack_casting != -1 || me.short_attack_casting != -1) {
+	if (me.long_attack_casting != -1 /*|| me.short_attack_casting != -1*/) {
 		return -1;
 	}
 	if (!me.skill_level[DASH]) {
@@ -727,32 +704,31 @@ int opponent()
 {
 	const double safe_distance = 1000;
 	int result = 0;
-	Position temp = { kMapSize / 2, kMapSize / 2, kMapSize / 2 };
-	solution[OPPONENT].pos = temp;
+	solution[OPPONENT].pos = { kMapSize>>1, kMapSize>>1, kMapSize>>1 };
 	solution[OPPONENT].weight = 0;
 	if (short_attack(opponent_obj) == 0 || long_attack(opponent_obj) == 0) {
 		result = 1;
 	}
-	/*if (opponent_obj.radius > me.radius && me.skill_level[SHORT_ATTACK] == 0) {
-	solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
-	solution[OPPONENT].weight = 1e8;
-	}*/
+	if (opponent_obj.radius > me.radius && me.skill_level[SHORT_ATTACK] == 0) {
+		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
+		solution[OPPONENT].weight = RUN_AWAY_WEIGHT;
+	}
 	if (opponent_obj.radius > me.radius / (kEatableRatio * 1.05)) {
 		solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
 		if (distance(opponent_obj.pos, me.pos) < kVision[0]) {
-			solution[OPPONENT].weight = 1e9;
+			solution[OPPONENT].weight = OPPONENT_EATEN_WEIGHT;
 		}
 		else {
-			solution[OPPONENT].weight = 1e4;
+			solution[OPPONENT].weight = BOSS_EATEN_WEIGHT;
 		}
 		if (distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
 			emergency = 1;
 		}
 	}
 	else if (opponent_obj.radius < me.radius * kEatableRatio
-		&& distance(me.pos, opponent_obj.pos) - opponent_obj.radius < safe_distance) {
+		&& distance(me.pos, opponent_obj.pos) - opponent_obj.radius < 2.5*safe_distance) {
 		solution[OPPONENT].pos = opponent_obj.pos;
-		solution[OPPONENT].weight = 1e6;
+		solution[OPPONENT].weight = EATABLE_BOSS_WEIGHT;
 	}
 	//else {
 	//	solution[OPPONENT].pos = add(me.pos, minus(me.pos, opponent_obj.pos));
@@ -760,66 +736,64 @@ int opponent()
 	//}
 	return result;
 }
-
 void anti_lock() {
 	//find a position without a devour
-	Position zero = { 0.0,0.0,0.0 };
-	if (distance(me.speed, zero) < 20) return;
+	//Position zero = { 0.0,0.0,0.0 };
+	if (length(me.speed) < 20) return;
 	Position speed;
 	Position center = { kMapSize >> 1,kMapSize >> 1,kMapSize >> 1 };
-	Position a[6] = { { 100,0,0 },{ -100,0,0 },{ 0,100,0 },{ 0,-100,0 },{ 0,0,100 },{ 0,0,-100 } };
 	if (!num_of_devour) {
 		if (!num_of_food) speed = minus(center, me.pos);
 		else speed = minus(food[0], me.pos);
 		goto MOVE;
 	}
 	if (!(me.pos.x > (kMapSize - 2 * me.radius))) {
-		speed = a[0];
+		speed = { 100,0,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.x<2 * me.radius)) {
-		speed = a[1];
+		speed = { -100,0,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.y > (kMapSize - 2 * me.radius))) {
-		speed = a[2];
+		speed = { 0,100,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.y<2 * me.radius)) {
-		speed = a[3];
+		speed = { 0,-100,0 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.z > (kMapSize - 2 * me.radius))) {
-		speed = a[4];
+		speed = { 0,0,100 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	if (!(me.pos.z<2 * me.radius)) {
-		speed = a[5];
+		speed = { 0,0,-100 };
 		if (zw_devour(1.1*me_radius, speed) < 1) goto MOVE;
 	}
 	//sorry
 	if (!(me.pos.x > (kMapSize - 2 * me.radius))) {
-		speed = a[0];
+		speed = { 100,0,0 };
 		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
 	}
 	if (!(me.pos.x<2 * me.radius)) {
-		speed = a[1];
+		speed = { -100,0,0 };
 		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
 	}
 	if (!(me.pos.y > (kMapSize - 2 * me.radius))) {
-		speed = a[2];
+		speed = { 0,100,0 };
 		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
 	}
 	if (!(me.pos.y<2 * me.radius)) {
-		speed = a[3];
+		speed = { 0,-100,0 };
 		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
 	}
 	if (!(me.pos.z > (kMapSize - 2 * me.radius))) {
-		speed = a[4];
+		speed = { 0,0,100 };
 		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
 	}
 	if (!(me.pos.z<2 * me.radius)) {
-		speed = a[5];
+		speed = { 0,0,-100 };
 		if (zw_devour(1.1*me_radius, speed) < 2) goto MOVE;
 	}
 MOVE:
@@ -828,7 +802,9 @@ MOVE:
 	int t = GetTime();
 	while ((GetTime() - t) < 50) {
 		update();
+		opponent();
 	}
+	solution[OPPONENT].weight = -1;
 }
 int zw_IsDevour(double d, Position des, Position speed)//判断下一时刻会不会碰到吞噬者
 {
