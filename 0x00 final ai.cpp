@@ -237,6 +237,7 @@ void AIMain() {
 																#ifdef LOG_Z
 																	   std::cout << "go_for = ";
 																	   show(go_for);
+																	   std::cout << length(GetStatus() -> objects[0].speed) << std::endl;
 																#endif
 		
 		if (false) {
@@ -305,18 +306,18 @@ void show(Position a){
 void attack_update() {
 	for (;;) {
 		me = GetStatus() -> objects[0];
-		if (me.skill_level[SHORT_ATTACK] < 4) {
-			if (me.ability >= zw_cost(SHORT_ATTACK)) {
+		if (me.skill_level[LONG_ATTACK] < 3) {
+			if (me.ability >= zw_cost(LONG_ATTACK)) {
 																#ifdef LOG_Z
-																	std::cout << "try attack_update(SHORT_ATTACK)" << std::endl;
+																	std::cout << "try attack_update(LONG_ATTACK)" << std::endl;
 																#endif
 				WAIT;
-				UpgradeSkill(me.id, SHORT_ATTACK);
+				UpgradeSkill(me.id, LONG_ATTACK);
 				GO;
 			}
 			else break;
 		}
-		else if (me.skill_level[HEALTH_UP] < 4){
+		else if (me.skill_level[HEALTH_UP] < 3){
 			if (me.ability >= zw_cost(HEALTH_UP)){
 																#ifdef LOG_Z
 																	std::cout << "try attack_update(HEALTH_UP)" << std::endl;
@@ -327,13 +328,13 @@ void attack_update() {
 			}
 			else break;
 		}
-		else if (me.skill_level[DASH] < 4) {
-			if (me.ability >= zw_cost(DASH)) {
+		else if (me.skill_level[SHORT_ATTACK] < 3) {
+			if (me.ability >= zw_cost(SHORT_ATTACK)) {
 																#ifdef LOG_Z
-																	std::cout << "try attack_update(DASHs)" << std::endl;
+																	std::cout << "try attack_update(SHORT_ATTACK)" << std::endl;
 																#endif
 				WAIT;
-				UpgradeSkill(me.id, DASH);
+				UpgradeSkill(me.id, SHORT_ATTACK);
 				GO;
 			}
 			else break;
@@ -493,6 +494,7 @@ void zw_enshaw() {
 		force = add(force, multiple(k*k*ENERGY_VALUE, point_to));
 	}
 	aim[0].weight = (int)(length(force));
+	aim[0].weight >>= 7;
 	aim[0].pos = add(me.pos, multiple(100, force));
 }//checked
 void move() {
