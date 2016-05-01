@@ -26,12 +26,13 @@ enum AR_BORDER {
 };
 enum value {
 	ENERGY_VALUE = 5,
-	HIGHLY_ADVANCED_VALUE = 1000,
-	MID_ADVANCED_VALUE = 500,
-	LOW_ADVANCED_VALUE = 50,
+	HIGHLY_ADVANCED_VALUE = 100,
+	MID_ADVANCED_VALUE = 90,
+	LOW_ADVANCED_VALUE = 5,
 	TRASH = 0,
 	RUN_VALUE = -10,
 	CHASING_VALUE = 30,
+	CHASING_BOSS_VALUE=10000,
 };
 const double eps = 1e-6;
 static PlayerObject me;
@@ -139,7 +140,7 @@ static Position anti_block_pos;
 static const Position center = { kMapSize >> 1, kMapSize >> 1, kMapSize >> 1 };
 
 void AIMain() {
-/*#ifdef _TEST_
+#ifdef _TEST_
 	if (GetStatus()->team_id == 1) {
 		int a = GetTime();
 		Position speed = { rand() % 200,rand() % 200,rand() % 200 };
@@ -149,7 +150,7 @@ void AIMain() {
 #endif
 #ifdef _LOG_
 	std::ios::sync_with_stdio(false);
-#endif*/
+#endif
 	srand(time(0));
 	me = GetStatus()->objects[0];
 	anti_block_pos = me.pos;
@@ -200,18 +201,17 @@ void init(){
 	see_opponent = devour_number = see_boss = AE_number = 0;
 	speed.x = speed.y = speed.z = (double)0;
 	MinAEdistance = 10000;
-
 	for (i = 0; i < map -> objects_number; ++i){
 		F = (double)0, dis = dist(map -> objects[i].pos, me.pos);
 		switch (map -> objects[i].type){
-			/*case PLAYER:
+			case PLAYER:
 				if (map -> objects[i].team_id == GetStatus() -> team_id) break;
 				opponent = map -> objects[i];
 				see_opponent = 1;
-				if ((me.radius > opponent.radius && me.skill_level[SHORT_ATTACK] > 2) || me.skill_level[SHORT_ATTACK] == kMaxSkillLevel) 
+				if ((me.radius > opponent.radius && (me.skill_level[SHORT_ATTACK] > 2)|| me.skill_level[LONG_ATTACK] > 2) || me.skill_level[SHORT_ATTACK] == kMaxSkillLevel) 
 					F = CHASING_VALUE * me.radius * opponent.radius / POW(dis, 3);
 				if (me.radius < opponent.radius * 0.9) 
-					F = RUN_VALUE * me.radius * opponent.radius / POW(dis, 3);*/
+					F = RUN_VALUE * me.radius * opponent.radius / POW(dis, 3);
 				break;
 			case ENERGY:
 				F = ENERGY_VALUE * POW(me.radius, 2) / POW(dis, 3);
@@ -269,7 +269,7 @@ void init(){
 
 	if (me.radius > 1.2 * boss_r && see_boss){ //如果比boss大，去吃
 		a2 = Minus(boss.pos, me.pos);
-		F = CHASING_VALUE * 10 * POW(me.radius, 2) / POW(length(a2), 3);
+		F = CHASING_BOSS_VALUE * POW(me.radius, 2) / POW(length(a2), 3);
 		speed = Add(speed, Multiple(F, a2));
 	}
 
@@ -285,7 +285,7 @@ void init(){
 
 	FBorder(1.1 * me.radius); //如果碰到边界，速度置0
 
-	if (boss_warning && IsBoss(boss_r + 1.1*me.radius, boss.pos)){ //如果碰到boss，正交化
+	if (boss_warning && IsBoss(boss_r + 1.5*me.radius, boss.pos)){ //如果碰到boss，正交化
 		a2 = Minus(boss.pos, me.pos);
 		speed = Schmidt(speed, a2);
 	}
@@ -306,6 +306,14 @@ void init_opponent() {
 			}
 }
 void strategy() {
+	if (norm_counter<10)
+		AE_Parameter=HIGHLY_ADVANCED_VALUE;
+	else if (norm_counter<20)
+		AE_Parameter=MID_ADVANCED_VALUE;
+	else if (norm_counter<25)
+		AE_Parameter=LOW_ADVANCED_VALUE;
+	else
+		AE_Parameter=TRASH;
 	if (ever_update) {
 		update(norm_update, &norm_counter, norm_update_level);
 	}
@@ -458,8 +466,12 @@ int IsDevour(double d, Position des) { //判断下一时刻会不会碰到吞噬
 }
 int IsBoss(double d, Position des) { //判断下一时刻会不会碰到boss
 	int flag = 0;
-	Position Next = Add(me.pos, Multiple(5, MaximumSpeed(speed)));
-	if (dist(Next, des) < d) flag = 1;
+	Position Next;
+	for (int i = 1; i <= 8; ++i) 
+	{
+		Next = Add(me.pos, Multiple(i, MaximumSpeed(speed)));
+		if (dist(Next, des) < d) flag = 1;
+	}
 	return flag;
 }
 int IsBorder(double d, Position des) { //判断物体是否在边界旁
