@@ -15,7 +15,7 @@
 #define GO (operate_time = GetTime());
 
 typedef Position Vector;
-enum AR_BORDER{
+enum AR_BORDER {
 	NONE = 0,
 	LEFT = 1 << 0,
 	RIGHT = 1 << 1,
@@ -24,11 +24,11 @@ enum AR_BORDER{
 	DOWN = 1 << 4,
 	UP = 1 << 5,
 };
-enum value{
+enum value {
 	ENERGY_VALUE = 5,
-	HIGHLY_ADVANCED_VALUE = 1000,
-	MID_ADVANCED_VALUE = 500,
-	LOW_ADVANCED_VALUE = 50,
+	HIGHLY_ADVANCED_VALUE = 100,
+	MID_ADVANCED_VALUE = 80,
+	LOW_ADVANCED_VALUE = 5,
 	TRASH = 0,
 	RUN_VALUE = -10,
 	CHASING_VALUE = 30,
@@ -45,7 +45,7 @@ static Position AE[MAX_SIZE];
 static int devour_number;
 static Position Devour[MAX_SIZE];
 static int operate_time;
-static int norm_update[] = {
+static int norm_update[]={
 	HEALTH_UP,//T1
 	HEALTH_UP,//T2
 	HEALTH_UP,//T3
@@ -79,7 +79,7 @@ static int norm_update[] = {
 	kSkillTypes,//end
 };
 static int norm_counter;
-static int attack_update[] = {
+static int attack_update[] ={
 	LONG_ATTACK,//T1
 	LONG_ATTACK,//T2
 	LONG_ATTACK,//T3
@@ -95,6 +95,24 @@ static int attack_update[] = {
 	DASH,//T4
 	SHORT_ATTACK,//T5
 	DASH,//T5
+	kSkillTypes,//end
+};
+static int attack_update2[] ={
+	SHORT_ATTACK,//T1
+	SHORT_ATTACK,//T2
+	DASH,//T1
+	SHORT_ATTACK,//T3
+	SHORT_ATTACK,//T4
+	DASH,//T2
+	DASH,//T3
+	SHORT_ATTACK,//T5
+	DASH,//T4
+	DASH,//T5
+	LONG_ATTACK,//T1
+	LONG_ATTACK,//T2
+	LONG_ATTACK,//T3
+	LONG_ATTACK,//T4
+	LONG_ATTACK,//T5
 	kSkillTypes,//end
 };
 static int attack_counter;
@@ -137,12 +155,12 @@ static Position anti_block_pos;
 static const Position center = {kMapSize >> 1, kMapSize >> 1, kMapSize >> 1};
 
 void AIMain(){
-	#ifdef _TEST_
+	/*#ifdef _TEST_
 	if (GetStatus() -> team_id == 1) return;
 	#endif
 	#ifdef _LOG_
 	std::ios::sync_with_stdio(false);
-	#endif
+	#endif*/
 	srand(time(0));
 	me = GetStatus() -> objects[0];
 	anti_block_pos = me.pos;
@@ -159,7 +177,8 @@ void AIMain(){
 		if (me.skill_level[SHIELD] > 2) shield();
 		init();
 		if ((GetTime() >> 6) != anti_block_time){
-			if (dist(anti_block_pos, me.pos) < 1000) anti_block();
+			if (dist(anti_block_pos, me.pos) < 1000) 
+				anti_block();
 			anti_block_time = GetTime() >> 6;
 			anti_block_pos = me.pos;
 		}
@@ -171,8 +190,9 @@ void AIMain(){
 
 void init(){
 	map = GetMap();
-	register int i;
+	register int i,j;
 	int AEflag; //记录有无AE可以走
+	int flag;//记录AE旁边有无吞噬者
 	register int ChosenAE;
 	register double MinAEdistance;
 	int Devour_Danger = 0;
@@ -194,9 +214,10 @@ void init(){
 				if (map -> objects[i].team_id == GetStatus() -> team_id) break;
 				opponent = map -> objects[i];
 				see_opponent = 1;
-				if (me.radius < opponent.radius) F = RUN_VALUE * me.radius * opponent.radius / POW(dis, 3);
-				if ((me.radius > opponent.radius && me.skill_level[SHORT_ATTACK] > 2) || me.skill_level[SHORT_ATTACK] == kMaxSkillLevel) F = CHASING_VALUE * me.radius * opponent.radius / POW(dis, 3);
-				if (me.radius < opponent.radius * 0.9) F = RUN_VALUE * me.radius * opponent.radius / POW(dis, 3);
+				if ((me.radius > opponent.radius && me.skill_level[SHORT_ATTACK] > 2) || me.skill_level[SHORT_ATTACK] == kMaxSkillLevel) 
+					F = CHASING_VALUE * me.radius * opponent.radius / POW(dis, 3);
+				if (me.radius < 0.9*opponent.radius) 
+					F = RUN_VALUE * me.radius * opponent.radius / POW(dis, 3);
 				break;
 			case ENERGY:
 				F = ENERGY_VALUE * POW(me.radius, 2) / POW(dis, 3);
@@ -225,7 +246,19 @@ void init(){
 		for (i = 0; i < AE_number; ++i)
 		{
 			dis = dist(AE[i], me.pos);
-			if (IsBorder(border_r, AE[i])) continue;
+			if (IsBorder(border_r, AE[i])) //在边界旁边，扔掉
+				continue;
+			flag=0;
+			for(j=0;j<devour_number;j++)
+			{
+				if (dist(Devour[j],AE[i])<1500)
+				{
+					flag=1;
+					break;
+				}
+			}
+			if (flag)//如果AE旁边有devour，扔掉
+				continue;
 			dis = dist(AE[i], me.pos);
 			if (MinAEdistance>dis){
 				MinAEdistance = dis;
@@ -245,9 +278,7 @@ void init(){
 		F = CHASING_VALUE * 10 * POW(me.radius, 2) / POW(length(a2), 3);
 		speed = Add(speed, Multiple(F, a2));
 	}
-
 	FBorder(1.1 * me.radius); //如果碰到边界，速度置0
-
 	Devour_Danger = !(me.shield_time > 15 && me.skill_level[SHIELD] == kMaxSkillLevel);
 	if (Devour_Danger){
 		for (i = 0; i < devour_number; ++i) //处理吞噬者
@@ -277,6 +308,14 @@ void init_opponent(){
 			}
 }
 void strategy(){
+	if (norm_counter+attack_counter<=10)
+		AE_Parameter=HIGHLY_ADVANCED_VALUE;
+	else if (norm_counter+attack_counter<=20)
+		AE_Parameter=MID_ADVANCED_VALUE;
+	else if (norm_counter+attack_counter<30)
+		AE_Parameter=LOW_ADVANCED_VALUE;
+	else
+		AE_Parameter=TRASH;
 	if (ever_update){
 		update(norm_update, &norm_counter);
 	}
@@ -291,8 +330,10 @@ void strategy(){
 			long_attack(boss);
 		}
 	}
-	if (see_opponent){
-		if ((!ever_update) && dist(opponent.pos, me.pos) < 3000){
+	if (see_opponent)
+	{
+		if ((!ever_update) && dist(opponent.pos, me.pos) < 3000)
+		{
 			if (!see_boss || dot_product(Minus(boss.pos, me.pos), Minus(opponent.pos, me.pos)) < 0){
 				ever_update = 1;
 				for (;;){
@@ -302,8 +343,8 @@ void strategy(){
 					dash();
 					Move(me.id, speed);
 					update(attack_update, &attack_counter);
-					if (dist(me.pos, opponent.pos) - me.radius - opponent.radius < kShortAttackRange[me.skill_level[SHORT_ATTACK]] - 200) short_attack(opponent);
-					if (dist(me.pos, opponent.pos) - me.radius - opponent.radius < kLongAttackRange[me.skill_level[LONG_ATTACK]] - 200) long_attack(opponent);
+					short_attack(opponent);
+					long_attack(opponent);
 					if (me.health < 0.5 * me.max_health) break;
 					if (me.radius < opponent.radius * kEatableRatio + 100) break;
 					init_opponent();
@@ -323,54 +364,55 @@ void anti_block(){
 	#ifdef _LOG_
 	std::cout << "anti_block proceeding" << std::endl;
 	#endif
+	Position a[6]={ {100, 0, 0},{-100, 0, 0},{0, 100, 0},{0, -100, 0},{0, 0, 100},{0, 0, -100}};
 	if (length(me.speed) < 20) return;
 	if (me.pos.x < kMapSize - 2 * me.radius){
-		speed = {100, 0, 0};
+		speed =a[0];
 		if (zw_devour(1.1 * me.radius, speed) < 1) goto MOVE;
 	}
 	if (me.pos.x > 2 * me.radius){
-		speed = {-100, 0, 0};
+		speed = a[1];
 		if (zw_devour(1.1 * me.radius, speed) < 1) goto MOVE;
 	}
 	if (me.pos.y < kMapSize - 2 * me.radius){
-		speed = {0, 100, 0};
+		speed = a[2];
 		if (zw_devour(1.1 * me.radius, speed) < 1) goto MOVE;
 	}
 	if (me.pos.y > 2 * me.radius){
-		speed = {0, -100, 0};
+		speed = a[3];
 		if (zw_devour(1.1 * me.radius, speed) < 1) goto MOVE;
 	}
 	if (me.pos.z < kMapSize - 2 * me.radius){
-		speed = {0, 0, 100};
+		speed = a[4];
 		if (zw_devour(1.1 * me.radius, speed) < 1) goto MOVE;
 	}
 	if (me.pos.z > 2 * me.radius){
-		speed = {0, 0, -100};
+		speed = a[5];
 		if (zw_devour(1.1 * me.radius, speed) < 1) goto MOVE;
 	}
 	
 	if (me.pos.x < kMapSize - 2 * me.radius){
-		speed = {100, 0, 0};
+		speed = a[0];
 		if (zw_devour(1.1 * me.radius, speed) < 2) goto MOVE;
 	}
 	if (me.pos.x > 2 * me.radius){
-		speed = {-100, 0, 0};
+		speed = a[1];
 		if (zw_devour(1.1 * me.radius, speed) < 2) goto MOVE;
 	}
 	if (me.pos.y < kMapSize - 2 * me.radius){
-		speed = {0, 100, 0};
+		speed = a[2];
 		if (zw_devour(1.1 * me.radius, speed) < 2) goto MOVE;
 	}
 	if (me.pos.y > 2 * me.radius){
-		speed = {0, -100, 0};
+		speed = a[3];
 		if (zw_devour(1.1 * me.radius, speed) < 2) goto MOVE;
 	}
 	if (me.pos.z < kMapSize - 2 * me.radius){
-		speed = {0, 0, 100};
+		speed = a[4];
 		if (zw_devour(1.1 * me.radius, speed) < 2) goto MOVE;
 	}
 	if (me.pos.z > 2 * me.radius){
-		speed = {0, 0, -100};
+		speed = a[5];
 		if (zw_devour(1.1 * me.radius, speed) < 2) goto MOVE;
 	}
 
@@ -493,7 +535,7 @@ void long_attack(Object target){
 	if (me.skill_cd[LONG_ATTACK]) return;
 	if (me.short_attack_casting != -1) return;
 	if (me.long_attack_casting != -1) return;
-	if (dist(me.pos, target.pos) - me.radius - target.radius > kLongAttackRange[me.skill_level[LONG_ATTACK]]) return;
+	if (dist(me.pos, target.pos) - me.radius - target.radius > kLongAttackRange[me.skill_level[LONG_ATTACK]]-100) return;
 	WAIT;
 	LongAttack(me.id, target.id);
 	GO;
@@ -505,7 +547,7 @@ void short_attack(Object target){
 	if (me.skill_cd[SHORT_ATTACK]) return;
 	if (me.short_attack_casting != -1) return;
 	if (me.long_attack_casting != -1) return;
-	if (dist(me.pos, target.pos) - me.radius - target.radius > kLongAttackRange[me.skill_level[SHORT_ATTACK]]) return;
+	if (dist(me.pos, target.pos) - me.radius - target.radius > kLongAttackRange[me.skill_level[SHORT_ATTACK]]-100) return;
 	WAIT;
 	ShortAttack(me.id);
 	GO;
