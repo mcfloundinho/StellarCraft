@@ -15,7 +15,7 @@
 #define GO (operate_time = GetTime());
 
 typedef Position Vector;
-enum AR_BORDER {
+enum AR_BORDER{
 	NONE = 0,
 	LEFT = 1 << 0,
 	RIGHT = 1 << 1,
@@ -24,7 +24,7 @@ enum AR_BORDER {
 	DOWN = 1 << 4,
 	UP = 1 << 5,
 };
-enum value {
+enum value{
 	ENERGY_VALUE = 5,
 	HIGHLY_ADVANCED_VALUE = 1000,
 	MID_ADVANCED_VALUE = 500,
@@ -45,7 +45,7 @@ static Position AE[MAX_SIZE];
 static int devour_number;
 static Position Devour[MAX_SIZE];
 static int operate_time;
-static int norm_update[]{
+static int norm_update[] = {
 	HEALTH_UP,//T1
 	HEALTH_UP,//T2
 	HEALTH_UP,//T3
@@ -79,7 +79,7 @@ static int norm_update[]{
 	kSkillTypes,//end
 };
 static int norm_counter;
-static int attack_update[]{
+static int attack_update[] = {
 	LONG_ATTACK,//T1
 	LONG_ATTACK,//T2
 	LONG_ATTACK,//T3
