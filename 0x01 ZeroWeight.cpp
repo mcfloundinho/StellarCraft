@@ -83,28 +83,16 @@ void AIMain() {
 	for (;;) {
 		srand(time(0));
 		code = initial();
-		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		update();
-		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&OPPONENT) {
 			//opponent();
 		}
-		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (code&SEE_BOSS) {
 			boss();
 		}
-		if (distance(GetStatus()->objects[0].pos, me.pos) > 2 * me.radius) goto AVOID;
 		if (!emergency) {
 			greedy();
 		}
-<<<<<<< HEAD
-	AVOID:
-=======
-		if (false) {
-		AVOID:
-			initial();
-		}
->>>>>>> origin/final_game
 		avoid();
 		move();
 	}
@@ -301,24 +289,12 @@ int zw_cmp(const void* p, const void* q) {
 }
 void avoid()
 {
-	me = GetStatus()->objects[0];
-<<<<<<< HEAD
-	Position default_pos[6];
-	default_pos[0] = add(me.pos, { 1000,0,0 });
-	default_pos[1] = add(me.pos, { -1000,0,0 });
-	default_pos[2] = add(me.pos, { 0,1000,0 });
-	default_pos[3] = add(me.pos, { 0,-1000,0 });
-	default_pos[4] = add(me.pos, { 0,0,1000 });
-	default_pos[5] = add(me.pos, { 0,0,-1000 });
-=======
->>>>>>> origin/final_game
 	int IsDevour(double d, Position des, Position speed);
 	Position Schmidt(Position a1, Position a2);
 	int flag;//记录是否选取
 	int j, devour_count;
-	int i;
 	Position aim_devour;
-	for (i = 0;i<num_of_aim;i++)
+	for (int i = 0;i<num_of_aim;i++)
 	{
 		flag = 1;
 		for (j = 0;j<num_of_devour;j++)
@@ -329,7 +305,6 @@ void avoid()
 		}
 		if (flag == 0)
 		{
-			printf("throw it away!\n");
 			continue;
 		}
 		else
@@ -351,7 +326,6 @@ void avoid()
 			else
 				if (devour_count == 1)
 				{
-					printf("warning\n");
 					Position a2 = minus(aim_devour, me.pos);
 					go_for = add(me.pos, Schmidt(speed, a2));
 					break;
@@ -362,9 +336,6 @@ void avoid()
 					break;
 				}
 		}
-	}
-	if (i == num_of_aim) {
-		//do sth for default
 	}
 }
 Position Schmidt(Position a1, Position a2)
@@ -507,6 +478,7 @@ int long_attack(const Object& target)
 	GO;
 	return 0;
 }
+
 int short_attack(const Object& target)
 {
 	if (me.skill_cd[SHORT_ATTACK] == -1) {
